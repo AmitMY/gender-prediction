@@ -123,7 +123,7 @@ def evaluate(tokenizer, textcat, texts, cats):
 
 
 if __name__ == '__main__':
-    train, dev = Data("All", "train").split()
+    train, dev = Data("All", "train", tokenize= True).split()
     # train = Data("Train", "train", ["twitter", "youtube"])
     # dev = Data("Dev", "train", ["news"])
 

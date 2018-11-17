@@ -5,15 +5,20 @@ from utils.file_system import listdir
 from regex import findall
 
 import os
-
+import spacy
 script_dir = os.path.dirname(__file__)
+
+nlp = spacy.load("nl_core_news_sm")
+
+from spacy.lang.nl import Dutch
+tokenizer = Dutch().Defaults.create_tokenizer(nlp)
 
 
 class Data:
-    def __init__(self, name, source, specific=None):
+    def __init__(self, name, source, specific=None, tokenize=False):
         if isinstance(source, str):
             files = listdir(os.path.join(script_dir, source))
-            self.categories = {f.split("_")[1].split(".")[0].lower(): self.parse_file(f) for f in files}
+            self.categories = {f.split("_")[1].split(".")[0].lower(): self.parse_file(f, tokenize) for f in files}
         else:
             self.categories = source
 
@@ -21,12 +26,13 @@ class Data:
 
         print(name, "found", {w: len(c) for w, c in self.categories.items()})
 
-    def parse_file(self, f):
+    def parse_file(self, f, tokenize=False):
         raw = open(f, "r", encoding="utf-8").read()
 
         matches = findall('<doc id="(\d*?)" genre="(.*?)" gender="(M|F)">\n([\s\S]*?)\n<\/doc>', raw)
 
-        data = list(map(lambda m: {"id": m[0], "genre": m[1], "gender": m[2], "text": m[3]}, matches))
+        data = list(map(lambda m: {"id": m[0], "genre": m[1], "gender": m[2],
+                                   "text": m[3] if not tokenize else " ".join(map(str, tokenizer(m[3])))}, matches))
         shuffle(data)
         return data
 
@@ -44,7 +50,7 @@ class Data:
 
 
 if __name__ == "__main__":
-    data = Data("All", "train")
+    data = Data("All", "train", tokenize=True)
     train, dev = data.split()
 
     texts, categories = train.export()
