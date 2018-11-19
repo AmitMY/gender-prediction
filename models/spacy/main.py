@@ -67,6 +67,8 @@ def main(model, train, dev, output_dir=None, n_iter=20):
             with textcat.model.use_params(optimizer.averages):
                 # evaluate on the dev data split off in load_data()
                 scores = evaluate(nlp.tokenizer, textcat, dev_texts, dev_cats)
+
+                yield scores['acc']
             print('{0:.3f}\t{1:.3f}\t{1:.3f}\t{2:.3f}\t{3:.3f}'  # print a simple table
                   .format(losses['textcat'], scores['acc'], scores['textcat_p'],
                           scores['textcat_r'], scores['textcat_f']))
@@ -119,14 +121,14 @@ def evaluate(tokenizer, textcat, texts, cats):
     precision = tp / (tp + fp)
     recall = tp / (tp + fn)
     f_score = 2 * (precision * recall) / (precision + recall)
-    return {'textcat_p': precision, 'textcat_r': recall, 'textcat_f': f_score, 'acc': float(correct)/len(cats)}
+    return {'textcat_p': precision, 'textcat_r': recall, 'textcat_f': f_score, 'acc': float(correct) / len(cats)}
 
 
 if __name__ == '__main__':
-    train, dev = Data("All", "train", tokenize= True).split()
+    train, dev = Data("All", "train", tokenize=True).split()
     # train = Data("Train", "train", ["twitter", "youtube"])
     # dev = Data("Dev", "train", ["news"])
 
     print("\n")
 
-    main(model="nl_core_news_sm", train=train, dev=dev, output_dir="out", n_iter=50)
+    main(model="nl_core_news_sm", train=train, dev=dev, n_iter=50)

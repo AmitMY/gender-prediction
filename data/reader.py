@@ -1,6 +1,6 @@
+from functools import lru_cache
 from itertools import chain
-from random import shuffle
-
+import random
 from utils.file_system import listdir
 from regex import findall
 
@@ -13,9 +13,12 @@ nlp = spacy.load("nl_core_news_sm")
 from spacy.lang.nl import Dutch
 tokenizer = Dutch().Defaults.create_tokenizer(nlp)
 
+@lru_cache(maxsize=None)
+def cached_tokenizer(text):
+    return " ".join(map(str, tokenizer(text)))
 
 class Data:
-    def __init__(self, name, source, specific=None, tokenize=False):
+    def __init__(self, name, source, specific=None, tokenize=True):
         if isinstance(source, str):
             files = listdir(os.path.join(script_dir, source))
             self.categories = {f.split("_")[1].split(".")[0].lower(): self.parse_file(f, tokenize) for f in files}
@@ -32,8 +35,8 @@ class Data:
         matches = findall('<doc id="(\d*?)" genre="(.*?)" gender="(M|F)">\n([\s\S]*?)\n<\/doc>', raw)
 
         data = list(map(lambda m: {"id": m[0], "genre": m[1], "gender": m[2],
-                                   "text": m[3] if not tokenize else " ".join(map(str, tokenizer(m[3])))}, matches))
-        shuffle(data)
+                                   "text": m[3] if not tokenize else cached_tokenizer(m[3])}, matches))
+        random.Random(1234).shuffle(data) # Same shuffle seed
         return data
 
     def split(self, percent=0.9):
@@ -43,7 +46,7 @@ class Data:
         return data1, data2
 
     def export(self):
-        pairs = [[w + ": " + c["text"], 0 if c["gender"] == "M" else 1]
+        pairs = [(w + ": " + c["text"], 0 if c["gender"] == "M" else 1)
                  for w, co in self.categories.items() for c in co]
 
         return list(zip(*pairs))  # List of texts, list of tags
