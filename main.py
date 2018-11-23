@@ -18,13 +18,13 @@ data = {
 }
 
 scenarios = {
-    # "All 90%|All 10%": data["all"].split(),
+    "All 90%|All 10%": data["all"].split(),
     "Twitter 90%|Twitter 10%": data["twitter"].split(),
     "YouTube 90%|YouTube 10%": data["youtube"].split(),
     "News 90%|News 10%": data["news"].split(),
-    # "Twitter, News|YouTube": (data["twitter+news"], data["youtube"]),
-    # "Twitter, YouTube|News": (data["twitter+youtube"], data["news"]),
-    # "YouTube, News|Twitter": (data["news+youtube"], data["twitter"]),
+    "Twitter, News|YouTube": (data["twitter+news"], data["youtube"]),
+    "Twitter, YouTube|News": (data["twitter+youtube"], data["news"]),
+    "YouTube, News|Twitter": (data["news+youtube"], data["twitter"]),
 }
 
 models = {
