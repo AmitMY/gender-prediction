@@ -2,6 +2,7 @@ from json import load, dump
 
 from data.reader import Data
 from models.spacy.main import main as spacy_main
+from models.pytorch.main import main as pytorch_main
 
 scenarios = {
     "All 90%|All 10%": Data("All", "train").split(),
@@ -13,16 +14,11 @@ scenarios = {
     "YouTube, News|Twitter": (Data("Train", "train", ["youtube", "news"]), Data("Train", "train", ["twitter"])),
 }
 
-learning_rate = 2e-5
-batch_size = 32
-output_size = 2
-hidden_size = 256
-embedding_length = 300
-
-model = LSTMClassifier(batch_size, output_size, hidden_size, vocab_size, embedding_length, word_embeddings)
-
 models = {
-    "Spacy": (spacy_main, "nl_core_news_sm")
+    "Spacy": (spacy_main, "nl_core_news_sm"),
+    "LSTM": (pytorch_main, "lstm"),
+    "LSTMAttention": (pytorch_main, "lstm_attention"),
+    "SelfAttention": (pytorch_main, "self_attention"),
 }
 
 res_file_name = "results.json"
@@ -40,6 +36,7 @@ for name, (train, dev) in scenarios.items():
     if name not in results:
         results[name] = {}
     for model_name, (runner, model) in models.items():
+        print(name, model_name, model)
         if model_name in results[name]:
             print("Skipping", model_name, name)
         else:
@@ -54,7 +51,7 @@ for name, (train, dev) in scenarios.items():
                 else:
                     early_stop += 1
 
-                if early_stop > 3:
+                if early_stop > 5:
                     break
 
             results[name][model_name] = {
