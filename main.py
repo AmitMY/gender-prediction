@@ -4,18 +4,34 @@ from data.reader import Data
 from models.spacy.main import main as spacy_main
 from models.pytorch.main import main as pytorch_main
 
+data = {
+    "all": Data("All", "train"),
+
+    "twitter": Data("Twitter", "train", ["twitter"]),
+    "youtube": Data("Youtube", "train", ["youtube"]),
+    "news": Data("News", "train", ["news"]),
+
+    "twitter+news": Data("Twitter, News", "train", ["twitter", "news"]),
+    "twitter+youtube": Data("Twitter, Youtube", "train", ["twitter", "youtube"]),
+    "news+youtube": Data("News, Youtube", "train", ["news", "youtube"]),
+
+}
+
 scenarios = {
-    "All 90%|All 10%": Data("All", "train").split(),
-    "Twitter 90%|Twitter 10%": Data("Train", "train", ["twitter"]).split(),
-    "YouTube 90%|YouTube 10%": Data("Train", "train", ["youtube"]).split(),
-    "News 90%|News 10%": Data("Train", "train", ["news"]).split(),
-    "Twitter, News|YouTube": (Data("Train", "train", ["twitter", "news"]), Data("Train", "train", ["youtube"])),
-    "Twitter, YouTube|News": (Data("Train", "train", ["twitter", "youtube"]), Data("Train", "train", ["news"])),
-    "YouTube, News|Twitter": (Data("Train", "train", ["youtube", "news"]), Data("Train", "train", ["twitter"])),
+    # "All 90%|All 10%": data["all"].split(),
+    "Twitter 90%|Twitter 10%": data["twitter"].split(),
+    "YouTube 90%|YouTube 10%": data["youtube"].split(),
+    "News 90%|News 10%": data["news"].split(),
+    # "Twitter, News|YouTube": (data["twitter+news"], data["youtube"]),
+    # "Twitter, YouTube|News": (data["twitter+youtube"], data["news"]),
+    # "YouTube, News|Twitter": (data["news+youtube"], data["twitter"]),
 }
 
 models = {
     "Spacy": (spacy_main, "nl_core_news_sm"),
+    "RNN": (pytorch_main, "rnn"),
+    "CNN": (pytorch_main, "cnn"),
+    "RCNN": (pytorch_main, "rcnn"),
     "LSTM": (pytorch_main, "lstm"),
     "LSTMAttention": (pytorch_main, "lstm_attention"),
     "SelfAttention": (pytorch_main, "self_attention"),
