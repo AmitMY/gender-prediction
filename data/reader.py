@@ -1,8 +1,10 @@
 from functools import lru_cache
 from itertools import chain
 import random
-from utils.file_system import listdir
+from utils.file_system import listdir, savetodir
 from regex import findall
+
+import argparse
 
 import os
 import spacy
@@ -51,10 +53,34 @@ class Data:
 
         return list(zip(*pairs))  # List of texts, list of tags
 
+def main():
+    data_choices = {'a':'All',
+		    'y':'YouTube',
+		    't':'Twitter',
+                    'n':'News'}
 
-if __name__ == "__main__":
-    data = Data("All", "train", tokenize=True)
+    parser = argparse.ArgumentParser(description='')
+    parser.add_argument('-d', '--data-dir', required=False, default='train', help='the folder containing a data set (to be split).')
+    parser.add_argument('-o', '--output-dir', required=False, default='train', help='the folder where splits will be saved.')
+    parser.add_argument('-t', '--data-type', required=False, default='a', choices=data_choices.keys(), help='the type of data [a = All, y = YouTube, t = Twitter, n = News].')
+
+    args = parser.parse_args()
+
+    data = Data(data_choices[args.data_type], args.data_dir, tokenize=True)
     train, dev = data.split()
 
-    texts, categories = train.export()
-    print("\n", texts[-1], "|", categories[-1])
+    # TODO: make a class for this
+    texts = {}
+    categories = {}
+
+    texts['train'], categories['train'] = train.export()
+    texts['dev'], categories['dev'] = dev.export()
+
+    print("\n", texts['train'][-1], "|", categories['dev'][-1])
+    for data_split in texts:
+        savetodir(args.output_dir, texts[data_split], data_split + '.dat')
+        savetodir(args.output_dir, categories[data_split], data_split + '.lbl')
+
+
+if __name__ == "__main__":
+    main()
