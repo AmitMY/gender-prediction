@@ -14,7 +14,7 @@ then
 fi
 INFILE=$1
 
-ORDER=6
+ORDER=5
 
 echo " ----- STEP 1 ----- "
 # Build Language Model using KENLM #
