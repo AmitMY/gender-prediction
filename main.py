@@ -5,7 +5,7 @@ from models.spacy.main import main as spacy_main
 from models.pytorch.main import main as pytorch_main
 
 data = {
-    "all": Data("All", "train"),
+    "original": Data("All", "train", ["twitter", "youtube", "news"]),
 
     "twitter": Data("Twitter", "train", ["twitter"]),
     "youtube": Data("Youtube", "train", ["youtube"]),
@@ -18,7 +18,7 @@ data = {
 }
 
 scenarios = {
-    "All 90%|All 10%": data["all"].split(),
+    "Original 90%|Original 10%": data["original"].split(),
     "Twitter 90%|Twitter 10%": data["twitter"].split(),
     "YouTube 90%|YouTube 10%": data["youtube"].split(),
     "News 90%|News 10%": data["news"].split(),
@@ -28,14 +28,17 @@ scenarios = {
 }
 
 models = {
-    "Spacy": (spacy_main, "nl_core_news_sm"),
-    "RNN": (pytorch_main, "rnn"),
-    "CNN": (pytorch_main, "cnn"),
-    "RCNN": (pytorch_main, "rcnn"),
-    "LSTM": (pytorch_main, "lstm"),
-    "LSTMAttention": (pytorch_main, "lstm_attention"),
-    "SelfAttention": (pytorch_main, "self_attention"),
+    "Spacy": (spacy_main, "nl_core_news_sm", {}),
+    "RNN": (pytorch_main, "rnn", {}),
+    "CNN": (pytorch_main, "cnn", {}),
+    "RCNN": (pytorch_main, "rcnn", {}),
+    "LSTM": (pytorch_main, "lstm", {}),
+    "LSTMAttention": (pytorch_main, "lstm_attention", {}),
+    "SelfAttention": (pytorch_main, "self_attention", {}),
 }
+
+NUM_RUNS = 3
+models = {w + "." + str(i): c for w, c in models.items() for i in range(NUM_RUNS)}
 
 res_file_name = "results.json"
 
@@ -51,7 +54,7 @@ print(results)
 for name, (train, dev) in scenarios.items():
     if name not in results:
         results[name] = {}
-    for model_name, (runner, model) in models.items():
+    for model_name, (runner, model, options) in models.items():
         print(name, model_name, model)
         if model_name in results[name]:
             print("Skipping", model_name, name)
