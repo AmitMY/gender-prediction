@@ -11,3 +11,38 @@
 | Twitter, News|YouTube | 53.55 | 53.40 | 52.69 | 50.90 | 52.33 | 56.03 | 51.93 |
 | Twitter, YouTube|News | 52.84 | 51.83 | 50.84 | 52.84 | 51.47 | 49.28 | 53.17 |
 | YouTube, News|Twitter | 55.32 | 52.66 | 52.84 | 53.71 | 51.87 | 50.85 | 53.84 |
+
+#UNIGRAMS
+|TRAIN|DEV|SVM|LOG|RF|
+| --- | - | - | - | -|
+|Twitter 90%|Twitter 10%|58%|58%|60%|
+|YouTube 90%|YouTube 10%|57%|59%|58%|
+|News 90%|News 10%|59%|57%|56%|
+| -------| ------ | - | - | - |
+|Twitter, News|YouTube|53%|53%|51%|
+|YouTube, News|News|53%|53%|52%|
+|Twitter, Youtube|Twitter|52%|54%|51%|
+
+
+#POS
+|TRAIN|DEV|SVM|LOG|RF|
+| --- | - | - | - | -|
+|Twitter 90%|Twitter 10%|44%|43%|45%|
+|YouTube 90%|YouTube 10%|58%|58%|55%|
+|News 90%|News 10%|18%|18%|16%|
+| -------| ------ | - | - | - |
+|Twitter, News|YouTube|50%|R|R|
+|YouTube, News|Twitter|51%|R|R|
+|Twitter, Youtube|News|50%|R|R|
+
+#UNIGRAMS + POS
+|TRAIN |DEV|SVM|LOG|RF|
+| ---- | - | - | - | -|
+|Twitter 90%|Twitter 10%|59%|58%|51%|
+|YouTube 90%|YouTube 10%|56%|61%|56%|
+|News 90%|News 10%|59%|58%|53%|
+| -------| ------ | - | - | - |
+|Twitter, News|YouTube|52%|52%|RUN|
+|YouTube, News|Twitter|52%|52%|RUN|
+|Twitter, Youtube|News|RUN|52%|RUN|
+
