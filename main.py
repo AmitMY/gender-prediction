@@ -1,4 +1,5 @@
 from json import load, dump
+from random import shuffle
 
 from data.reader import Data
 from models.spacy.main import main as spacy_main
@@ -29,13 +30,13 @@ scenarios = {
 
 models = {
     "Spacy": (spacy_main, "nl_core_news_sm", {}),
-    "RNN": (pytorch_main, "rnn", {}),
-    "CNN": (pytorch_main, "cnn", {}),
-    "RCNN": (pytorch_main, "rcnn", {}),
-    "LSTM": (pytorch_main, "lstm", {}),
-    "LSTMAttention": (pytorch_main, "lstm_attention", {}),
-    "SelfAttention": (pytorch_main, "self_attention", {}),
 }
+
+# Add all of the pytorch models
+for m in ["RNN", "CNN", "RCNN", "LSTM", "LSTMAttention", "SelfAttention"]:
+    # for m in ["CNN", "RCNN", "SelfAttention"]:
+    models[m] = (pytorch_main, m, {})
+    models[m + "+"] = (pytorch_main, m, {"pretrained": "fasttext"})
 
 NUM_RUNS = 3
 models = {w + "." + str(i): c for w, c in models.items() for i in range(NUM_RUNS)}
@@ -51,18 +52,20 @@ except:
 print("Current Results")
 print(results)
 
-for name, (train, dev) in scenarios.items():
+scenarios_shuffled = list(scenarios.items())
+shuffle(scenarios_shuffled)
+for name, (train, dev) in scenarios_shuffled:
     if name not in results:
         results[name] = {}
     for model_name, (runner, model, options) in models.items():
-        print(name, model_name, model)
+        print(name, model_name, model, options)
         if model_name in results[name]:
-            print("Skipping", model_name, name)
+            print("Skipping", model_name, name, options)
         else:
             all_scores = []
             best_score = 0
             early_stop = 0
-            for score in runner(model=model, train=train, dev=dev):
+            for score in runner(model=model, train=train, dev=dev, opt=options):
                 all_scores.append(score)
                 if score > best_score:
                     best_score = score
@@ -73,9 +76,13 @@ for name, (train, dev) in scenarios.items():
                 if early_stop > 5:
                     break
 
+            try:
+                results = load(open(res_file_name, "r"))
+            except:
+                pass
             results[name][model_name] = {
                 "scores": all_scores,
                 "best": best_score
             }
             dump(results, open(res_file_name, "w"), indent=2)
-            print(model_name, name, best_score)
+            print(model_name, name, options, best_score)

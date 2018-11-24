@@ -6,7 +6,7 @@ from torch.autograd import Variable
 from torch.nn import functional as F
 
 class CNN(nn.Module):
-	def __init__(self, batch_size, output_size, in_channels, out_channels, kernel_heights, stride, padding, keep_probab, vocab_size, embedding_length):
+	def __init__(self, batch_size, output_size, in_channels, out_channels, kernel_heights, stride, padding, keep_probab, vocab_size, embedding_length, weights=None):
 		super(CNN, self).__init__()
 		
 		"""
@@ -35,7 +35,8 @@ class CNN(nn.Module):
 		self.embedding_length = embedding_length
 		
 		self.word_embeddings = nn.Embedding(vocab_size, embedding_length)
-		# self.word_embeddings.weight = nn.Parameter(weights, requires_grad=False)
+		if weights is not None:
+			self.word_embeddings.weight = nn.Parameter(weights, requires_grad=False)
 		self.conv1 = nn.Conv2d(in_channels, out_channels, (kernel_heights[0], embedding_length), stride, padding)
 		self.conv2 = nn.Conv2d(in_channels, out_channels, (kernel_heights[1], embedding_length), stride, padding)
 		self.conv3 = nn.Conv2d(in_channels, out_channels, (kernel_heights[2], embedding_length), stride, padding)

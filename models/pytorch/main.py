@@ -17,21 +17,23 @@ hidden_size = 256
 embedding_length = 300
 
 
-def main(model, train, dev):
-    TEXT, vocab_size, train_iter, dev_iter = load_dataset(train, dev)
+def main(model, train, dev, opt={}):
+    TEXT, vocab_size, train_iter, dev_iter, vectors = \
+        load_dataset(train, dev, opt["pretrained"] if "pretrained" in opt else None)
 
-    if model == "lstm":
-        model = LSTMClassifier(batch_size, output_size, hidden_size, vocab_size, embedding_length)
-    elif model == "rnn":
-        model = RNN(batch_size, output_size, hidden_size, vocab_size, embedding_length)
-    elif model == "rcnn":
-        model = RCNN(batch_size, output_size, hidden_size, vocab_size, embedding_length)
-    elif model == "lstm_attention":
-        model = AttentionModel(batch_size, output_size, hidden_size, vocab_size, embedding_length)
-    elif model == "self_attention":
-        model = SelfAttention(batch_size, output_size, hidden_size, vocab_size, embedding_length)
-    elif model == "cnn":
-        model = CNN(batch_size, output_size, 1, 128, [3, 4, 5], 1, 0, 0.8, vocab_size, embedding_length)
+    vectors = vectors if "pretrained" in opt else None
+    if model == "LSTM":
+        model = LSTMClassifier(batch_size, output_size, hidden_size, vocab_size, embedding_length, vectors)
+    elif model == "RNN":
+        model = RNN(batch_size, output_size, hidden_size, vocab_size, embedding_length, vectors)
+    elif model == "RCNN":
+        model = RCNN(batch_size, output_size, hidden_size, vocab_size, embedding_length, vectors)
+    elif model == "LSTMAttention":
+        model = AttentionModel(batch_size, output_size, hidden_size, vocab_size, embedding_length, vectors)
+    elif model == "SelfAttention":
+        model = SelfAttention(batch_size, output_size, hidden_size, vocab_size, embedding_length, vectors)
+    elif model == "CNN":
+        model = CNN(batch_size, output_size, 1, 128, [3, 4, 5], 1, 0, 0.8, vocab_size, embedding_length, vectors)
     else:
         raise ValueError("Unknown model " + model)
 

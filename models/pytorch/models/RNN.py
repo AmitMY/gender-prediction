@@ -4,7 +4,7 @@ from torch.autograd import Variable
 from torch.nn import functional as F
 
 class RNN(nn.Module):
-	def __init__(self, batch_size, output_size, hidden_size, vocab_size, embedding_length):
+	def __init__(self, batch_size, output_size, hidden_size, vocab_size, embedding_length, weights=None):
 		super(RNN, self).__init__()
 
 		"""
@@ -26,7 +26,8 @@ class RNN(nn.Module):
 		self.embedding_length = embedding_length
 		
 		self.word_embeddings = nn.Embedding(vocab_size, embedding_length)
-		# self.word_embeddings.weight = nn.Parameter(weights, requires_grad=False)
+		if weights is not None:
+			self.word_embeddings.weight = nn.Parameter(weights, requires_grad=False)
 		self.rnn = nn.RNN(embedding_length, hidden_size, num_layers=2, bidirectional=True)
 		self.label = nn.Linear(4*hidden_size, output_size)
 	

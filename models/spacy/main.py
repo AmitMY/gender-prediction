@@ -21,7 +21,7 @@ from tqdm import tqdm
 from data.reader import Data
 
 
-def main(model, train, dev, output_dir=None, n_iter=20):
+def main(model, train, dev, output_dir=None, n_iter=20, opt={}):
     nlp = spacy.load(model)  # load existing spaCy model
     print("Loaded model '%s'" % model)
 
@@ -68,7 +68,7 @@ def main(model, train, dev, output_dir=None, n_iter=20):
                 # evaluate on the dev data split off in load_data()
                 scores = evaluate(nlp.tokenizer, textcat, dev_texts, dev_cats)
 
-                yield scores['acc']
+                yield scores['acc'] * 100
             print('{0:.3f}\t{1:.3f}\t{1:.3f}\t{2:.3f}\t{3:.3f}'  # print a simple table
                   .format(losses['textcat'], scores['acc'], scores['textcat_p'],
                           scores['textcat_r'], scores['textcat_f']))

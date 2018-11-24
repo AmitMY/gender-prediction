@@ -7,7 +7,7 @@ from torch.nn import functional as F
 import numpy as np
 
 class AttentionModel(torch.nn.Module):
-	def __init__(self, batch_size, output_size, hidden_size, vocab_size, embedding_length):
+	def __init__(self, batch_size, output_size, hidden_size, vocab_size, embedding_length, weights=None):
 		super(AttentionModel, self).__init__()
 		
 		"""
@@ -31,7 +31,8 @@ class AttentionModel(torch.nn.Module):
 		self.embedding_length = embedding_length
 		
 		self.word_embeddings = nn.Embedding(vocab_size, embedding_length)
-		# self.word_embeddings.weights = nn.Parameter(weights, requires_grad=False)
+		if weights is not None:
+			self.word_embeddings.weight = nn.Parameter(weights, requires_grad=False)
 		self.lstm = nn.LSTM(embedding_length, hidden_size)
 		self.label = nn.Linear(hidden_size, output_size)
 		#self.attn_fc_layer = nn.Linear()

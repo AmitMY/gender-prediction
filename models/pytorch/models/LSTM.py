@@ -6,7 +6,7 @@ from torch.autograd import Variable
 from torch.nn import functional as F
 
 class LSTMClassifier(nn.Module):
-	def __init__(self, batch_size, output_size, hidden_size, vocab_size, embedding_length):
+	def __init__(self, batch_size, output_size, hidden_size, vocab_size, embedding_length, weights=None):
 		super(LSTMClassifier, self).__init__()
 		
 		"""
@@ -28,7 +28,8 @@ class LSTMClassifier(nn.Module):
 		self.embedding_length = embedding_length
 		
 		self.word_embeddings = nn.Embedding(vocab_size, embedding_length)# Initializing the look-up table.
-		# self.word_embeddings.weight = nn.Parameter(weights, requires_grad=False) # Assigning the look-up table to the pre-trained GloVe word embedding.
+		if weights is not None:
+			self.word_embeddings.weight = nn.Parameter(weights, requires_grad=False)
 		self.lstm = nn.LSTM(embedding_length, hidden_size)
 		self.label = nn.Linear(hidden_size, output_size)
 		

@@ -6,7 +6,7 @@ from torch.autograd import Variable
 from torch.nn import functional as F
 
 class RCNN(nn.Module):
-	def __init__(self, batch_size, output_size, hidden_size, vocab_size, embedding_length):
+	def __init__(self, batch_size, output_size, hidden_size, vocab_size, embedding_length, weights=None):
 		super(RCNN, self).__init__()
 		
 		"""
@@ -28,7 +28,8 @@ class RCNN(nn.Module):
 		self.embedding_length = embedding_length
 		
 		self.word_embeddings = nn.Embedding(vocab_size, embedding_length)# Initializing the look-up table.
-		# self.word_embeddings.weight = nn.Parameter(weights, requires_grad=False) # Assigning the look-up table to the pre-trained GloVe word embedding.
+		if weights is not None:
+			self.word_embeddings.weight = nn.Parameter(weights, requires_grad=False)
 		self.dropout = 0.8
 		self.lstm = nn.LSTM(embedding_length, hidden_size, dropout=self.dropout, bidirectional=True)
 		self.W2 = nn.Linear(2*hidden_size+embedding_length, hidden_size)
