@@ -42,7 +42,7 @@ def compare(lm_models, dev_set_file):
                 if i not in scores:
                     scores[i] = [class_text, score]
                 else:    # if it has already been filled then - we compare the scores
-                    if scores[i][1] <= score:
+                    if scores[i][1] < score:
                         scores[i] = [class_text, score]
                     else: # otherwise it doesn't change so we pass
                         pass
