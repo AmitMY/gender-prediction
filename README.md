@@ -6,6 +6,7 @@
 
 
 #UNIGRAMS
+
 |TRAIN|DEV|SVM|LOG|RF|
 | --- | - | - | - | -|
 |Twitter 90%|Twitter 10%|58%|58%|60%|
@@ -18,6 +19,7 @@
 
 
 #POS
+
 |TRAIN|DEV|SVM|LOG|RF|
 | --- | - | - | - | -|
 |Twitter 90%|Twitter 10%|44%|43%|45%|
@@ -29,6 +31,7 @@
 |Twitter, Youtube|News|50%|R|R|
 
 #UNIGRAMS + POS
+
 |TRAIN |DEV|SVM|LOG|RF|
 | ---- | - | - | - | -|
 |Twitter 90%|Twitter 10%|59%|58%|51%|
