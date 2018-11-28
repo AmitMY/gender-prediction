@@ -1,12 +1,6 @@
 #!/bin/bash
 MODELDIR=$1
-if [ -z $MTPATH ]
-then
-    echo "MT Path not set up"
-    echo "Please export MTPATH"
-    exit 1
-fi
-
+MTPATH=external
 if [ $# -lt 1 ]
 then
     echo "Two few input arguments"
@@ -22,8 +16,8 @@ sh preprocess.sh $INFILE $INFILE.lc-tok $MTPATH
 
 echo " ----- STEP 2 ----- "
 # Build Language Model using KENLM #
-$MTPATH/mosesdecoder/bin/lmplz -o $ORDER --prune 0 1 -S 50% -T /tmp < $INFILE.lc-tok > $INFILE.lm
+$MTPATH/lmplz -o $ORDER --prune 0 1 -S 50% -T /tmp < $INFILE.lc-tok > $INFILE.lm
 
 echo " ----- STEP 3 ----- "
 # Create binary LM #
-$MTPATH/mosesdecoder/bin/build_binary $INFILE.lm $INFILE.blm
+$MTPATH/build_binary $INFILE.lm $INFILE.blm
