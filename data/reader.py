@@ -1,7 +1,7 @@
 from functools import lru_cache
 from itertools import chain
 import random
-from utils.file_system import listdir, savetodir
+from utils.file_system import listdir, savetodir, save_pair_todir
 from regex import findall
 
 import argparse
@@ -48,15 +48,16 @@ class Data:
         return data1, data2
 
     def export(self):
-        pairs = [(w + ": " + c["text"], 0 if c["gender"] == "M" else 1)
+        #pairs = [(w + ": " + c["text"], 0 if c["gender"] == "M" else 1)
+        pairs = [(c["text"], 0 if c["gender"] == "M" else 1)
                  for w, co in self.categories.items() for c in co]
 
         return list(zip(*pairs))  # List of texts, list of tags
 
 def main():
     data_choices = {'a':'All',
-		    'y':'YouTube',
-		    't':'Twitter',
+                    'y':'YouTube',
+                    't':'Twitter',
                     'n':'News'}
 
     parser = argparse.ArgumentParser(description='')
@@ -76,10 +77,10 @@ def main():
     texts['train'], categories['train'] = train.export()
     texts['dev'], categories['dev'] = dev.export()
 
-    print("\n", texts['train'][-1], "|", categories['dev'][-1])
     for data_split in texts:
-        savetodir(args.output_dir, texts[data_split], data_split + '.dat')
-        savetodir(args.output_dir, categories[data_split], data_split + '.lbl')
+        print(str(len(texts['train'])))
+        print(str(len(categories['train'])))
+        save_pair_todir(args.output_dir, texts[data_split], categories[data_split], data_split + '.dat', data_split + '.lbl')
 
 
 if __name__ == "__main__":

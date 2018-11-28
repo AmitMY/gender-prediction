@@ -1,8 +1,10 @@
 import argparse
 import os
+import subprocess
 from language_model import languageModel
 from utils.file_system import savetodir, rmdir
 from collections import OrderedDict
+import numpy as np
 
 def split_by_class(text_file, label_file):
     ''' Splits the text file based on the different classes
@@ -31,12 +33,14 @@ def compare(lm_models, dev_set_file):
         :returns: a dictionary of scores with the sentence index as key and value: [predicted class, score]
     '''
     scores = OrderedDict()
-
+    count = 0
     with open(dev_set_file, 'r') as inFile:
         sents = inFile.readlines()
+        print(str(len(sents)))
         for class_text in lm_models:
             model = languageModel()
             model.load(lm_models[class_text])
+            
             for i in range(len(sents)):
                 score = model.score(sents[i].rstrip().lstrip())
                 if i not in scores:
@@ -64,6 +68,19 @@ def get_labels_from_file(file):
 
     return [line.rstrip().lstrip() for line in lines]
 
+def preprocess_text(text_file):
+    ''' Takes a file and preprocesses the file.
+        Currently the preprocessor will tokenize and lower case the data.
+
+        :param text_file: The name of the file to be preprocessed
+        :returns: The name of the file that containes the preprocessed output (default is file_name + extension .lc-tok)
+    '''
+    preprocessed_file_name = text_file + ".lc-tok"
+    current_path = os.path.dirname(os.path.abspath(__file__))
+    subprocess.call([os.path.join(current_path, 'preprocess.sh'), text_file, preprocessed_file_name])
+    return preprocessed_file_name
+
+
 def compute_accuracy(predicted, expected):
     ''' Computes the accuracy of the prediction
 
@@ -77,6 +94,13 @@ def compute_accuracy(predicted, expected):
             correct += 1.0
 
     return correct/len(predicted)
+
+def compute_accuracy_np(predicted, expected):
+    print("Using NP")
+    print(str(len(predicted)))
+    print(str(len(expected)))
+    eq = [1 if predicted[i] == expected[i] else 0 for i in range(len(predicted))]
+    return np.mean(eq)
 
 def main():
     parser = argparse.ArgumentParser(description='')
@@ -106,12 +130,13 @@ def main():
 
     # 3. Now the models are saved, let's experiment (if we are given something to play with)
     if not args.dev_set == None:
-        results = compare(lm_models, args.dev_set)
+        preprocessed_dev_set = preprocess_text(args.dev_set)
+        results = compare(lm_models, preprocessed_dev_set)
         predicted_labels = [results[i][0] for i in results]
         if not args.dev_label == None:
             expected_labels = get_labels_from_file(args.dev_label)
             #print('\n'.join([p + '\t' + e for p,e in zip(predicted_labels, expected_labels)]))
-            print(compute_accuracy(predicted_labels, expected_labels))
+            print(compute_accuracy_np(predicted_labels, expected_labels))
 
 if __name__ == "__main__":
     main()

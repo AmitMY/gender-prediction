@@ -14,12 +14,16 @@ then
 fi
 INFILE=$1
 
-ORDER=5
+ORDER=3
 
 echo " ----- STEP 1 ----- "
-# Build Language Model using KENLM #
-$MTPATH/mosesdecoder/bin/lmplz -o $ORDER -S 50% -T /tmp < $INFILE > $INFILE.lm
+# Preprocess: tokenize, DO NOT lower-case
+sh preprocess.sh $INFILE $INFILE.lc-tok $MTPATH
 
 echo " ----- STEP 2 ----- "
+# Build Language Model using KENLM #
+$MTPATH/mosesdecoder/bin/lmplz -o $ORDER --prune 0 1 -S 50% -T /tmp < $INFILE.lc-tok > $INFILE.lm
+
+echo " ----- STEP 3 ----- "
 # Create binary LM #
 $MTPATH/mosesdecoder/bin/build_binary $INFILE.lm $INFILE.blm
