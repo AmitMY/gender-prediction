@@ -3,9 +3,8 @@ from json import load
 results = load(open("results.json"))
 
 models = list(sorted(list(set.union(*[set(r.keys()) for r in results.values()]))))
-table_header = ["Train", "Dev"] + models
-table_divider = ["-" * len(s) for s in table_header]
-rows = [table_header, table_divider]
+table_header = ["Model"] + models
+rows = [table_header]
 
 print("\n")
 for k, m_res in results.items():
@@ -13,6 +12,9 @@ for k, m_res in results.items():
     maxn = max(nums)
     nums = [("__**" if n == maxn else "") + "{0:.2f}".format(n) + ("**__" if n == maxn else "") if n > 0 else "?"
             for n in nums]
-    rows.append([k] + nums)
+    rows.append([" ".join(k.split("|"))] + nums)
 
-print("\n".join(["| " + " | ".join(map(str, r)) + " |" for r in rows]))
+columns = list(zip(*rows))
+columns = columns[:1] + [["-" * len(s) for s in columns[0]]] + columns[1:]
+
+print("\n".join(["| " + " | ".join(map(str, r)) + " |" for r in columns]))

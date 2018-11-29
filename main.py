@@ -34,7 +34,6 @@ models = {
 
 # Add all of the pytorch models
 for m in ["RNN", "CNN", "RCNN", "LSTM", "LSTMAttention", "SelfAttention"]:
-    # for m in ["CNN", "RCNN", "SelfAttention"]:
     models[m] = (pytorch_main, m, {})
     models[m + "+"] = (pytorch_main, m, {"pretrained": "fasttext"})
 
