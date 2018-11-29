@@ -1,5 +1,52 @@
 # Gender Prediction from Dutch
 
+## Adding a model
+After writing some model, please create the following class:
+
+```python
+from data.reader import Data
+
+class ModelRunner:
+    def __init__(self, model, train, dev, opt={}):
+        self.train_set = train
+        self.dev_set = dev
+        self.opt = opt
+        
+        # Initialize your model
+        # If you have some options for your model, you will get them in opt.
+        
+
+    def load(self, path):
+        # If possible, load your model from a file
+        pass
+
+    def save(self, path):
+        # If possible, save your model to a file
+        pass
+    
+    def train(self):
+        # Here you should have the main training loop.
+        while True:
+            # Train an epoch, or something
+            result = self.eval(self.dev_set) # A number between 0 and 100
+            yield result
+        
+        # If your model does not include a training loop, and just returns a result:
+        result = self.eval(self.dev_set)
+        return [result]
+
+# To test if your model runs at all
+if __name__ == '__main__':
+    train, dev = Data("All", "train", tokenize=False).split() # Tokenize=False is just faster, but less accurate
+
+    inst = ModelRunner(model="some name or parameter", train=train, dev=dev, opt={})
+    first_epoch = next(iter(inst.train())) # Returns first result
+    inst.save("checkpoint") # Make sure this doesn't error
+    inst.load("checkpoint") # Make sure this doesn't error
+```
+
+Once it is implemented, 
+
 ### Experiments
 - Model.X means a new seed for the model
 - Model+ means it includes frozen fasttext embeddings
