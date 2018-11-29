@@ -23,3 +23,8 @@ def listdir(directory, full=True):
     if full:
         files = [join(directory, f) for f in files]
     return files
+
+
+def rmfile(path):
+    if os.path.isfile(path):
+        os.remove(path)
