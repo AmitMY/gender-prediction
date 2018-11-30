@@ -1,7 +1,7 @@
 from functools import lru_cache
 from itertools import chain
 import random
-from utils.file_system import listdir, savetodir, save_pair_todir
+from utils.file_system import listdir, savetodir
 from regex import findall
 
 import argparse
@@ -54,34 +54,3 @@ class Data:
 
         return list(zip(*pairs))  # List of texts, list of tags
 
-def main():
-    data_choices = {'a':'All',
-                    'y':'YouTube',
-                    't':'Twitter',
-                    'n':'News'}
-
-    parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-d', '--data-dir', required=False, default='train', help='the folder containing a data set (to be split).')
-    parser.add_argument('-o', '--output-dir', required=False, default='train', help='the folder where splits will be saved.')
-    parser.add_argument('-t', '--data-type', required=False, default='a', choices=data_choices.keys(), help='the type of data [a = All, y = YouTube, t = Twitter, n = News].')
-
-    args = parser.parse_args()
-
-    data = Data(data_choices[args.data_type], args.data_dir, tokenize=True)
-    train, dev = data.split()
-
-    # TODO: make a class for this
-    texts = {}
-    categories = {}
-
-    texts['train'], categories['train'] = train.export()
-    texts['dev'], categories['dev'] = dev.export()
-
-    for data_split in texts:
-        print(str(len(texts['train'])))
-        print(str(len(categories['train'])))
-        save_pair_todir(args.output_dir, texts[data_split], categories[data_split], data_split + '.dat', data_split + '.lbl')
-
-
-if __name__ == "__main__":
-    main()

@@ -5,20 +5,20 @@ from utils.file_system import savetodir, rmdir
 import kenlm
 
 class languageModel():
-    def __init__(self, text_file=None):
+    def __init__(self, text_file=None, ngram=3):
         ''' Initialises the language model by setting the data file
 
             :param text_file: the file with data to build a language model from
         '''
-        self._text_file = text_file
-        self.model = None
+        self.text_file = text_file
+        self.ngram = ngram
 
     def build(self):
         ''' Builds a statistical LM model (KenLM)
         '''
         current_path = os.path.dirname(os.path.abspath(__file__))
-        subprocess.call([os.path.join(current_path, 'train_lm.sh'), self._text_file])
-        return self._text_file + ".blm"
+        subprocess.call([os.path.join(current_path, 'train_lm_external.sh'), self.text_file, str(self.ngram)])
+        return self.text_file + ".blm"
 
     def load(self, model_file):
         ''' Loads an already trained model
