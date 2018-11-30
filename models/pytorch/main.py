@@ -21,7 +21,7 @@ class ModelRunner:
     def __init__(self, model, train, dev, opt={}):
 
         self.TEXT, self.vocab_size, self.train_iter, self.dev_iter, self.vectors = \
-            load_dataset(train, dev, opt["pretrained"] if "pretrained" in opt else None)
+            load_dataset(train, dev, opt)
 
         self.vectors = self.vectors if "pretrained" in opt else None
         if model == "LSTM":

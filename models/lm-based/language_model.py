@@ -1,10 +1,9 @@
-import argparse
 import os
 import subprocess
-from utils.file_system import savetodir, rmdir
 import kenlm
 
-class languageModel():
+
+class LanguageModel():
     def __init__(self, text_file=None, ngram=3):
         ''' Initialises the language model by setting the data file
 

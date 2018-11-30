@@ -1,10 +1,11 @@
 import argparse
 import os
 import subprocess
-from language_model import languageModel
-from utils.file_system import savetodir, rmdir
+from language_model import LanguageModel
+from utils.file_system import rmdir
 from collections import OrderedDict
 import numpy as np
+
 
 def split_by_class_data(text, label):
     ''' Splits the text based on the different classes
@@ -22,6 +23,7 @@ def split_by_class_data(text, label):
         else:
             split_data[l].extend(t.split('\n'))
     return split_data
+
 
 def split_by_sent(text, classes):
     ''' Splits the text on newlines.
@@ -50,19 +52,20 @@ def compare(lm_models, sents):
     scores = OrderedDict()
     count = 0
     for class_text in lm_models:
-        model = languageModel()
+        model = LanguageModel()
         model.load(lm_models[class_text])
 
         for i in range(len(sents)):
             score = model.score(sents[i].rstrip().lstrip())
             if i not in scores:
                 scores[i] = [class_text, score]
-            else:    # if it has already been filled then - we compare the scores
+            else:  # if it has already been filled then - we compare the scores
                 if scores[i][1] < score:
                     scores[i] = [class_text, score]
-                else: # otherwise it doesn't change so we pass
+                else:  # otherwise it doesn't change so we pass
                     pass
     return scores
+
 
 def compare_file(lm_models, dev_set_file):
     ''' For each sentence in dev_set_file, computes the score according to each language model and compares them.
@@ -76,24 +79,26 @@ def compare_file(lm_models, dev_set_file):
         sents = inFile.readlines()
         print(str(len(sents)))
         for class_text in lm_models:
-            model = languageModel()
+            model = LanguageModel()
             model.load(lm_models[class_text])
 
             for i in range(len(sents)):
                 score = model.score(sents[i].rstrip().lstrip())
                 if i not in scores:
                     scores[i] = [class_text, score]
-                else:    # if it has already been filled then - we compare the scores
+                else:  # if it has already been filled then - we compare the scores
                     if scores[i][1] < score:
                         scores[i] = [class_text, score]
-                    else: # otherwise it doesn't change so we pass
+                    else:  # otherwise it doesn't change so we pass
                         pass
     return scores
+
 
 def cleanup():
     ''' Removes all temporary files and folders
     '''
     rmdir('tmp')
+
 
 def get_labels_from_file(file):
     ''' Retrieving labels from a file
@@ -102,9 +107,10 @@ def get_labels_from_file(file):
         :returns: a list of labels
     '''
     with open(file) as F:
-         lines = F.readlines()
+        lines = F.readlines()
 
     return [line.rstrip().lstrip() for line in lines]
+
 
 def preprocess_text(text_file):
     ''' Takes a file and preprocesses the file.
@@ -128,4 +134,3 @@ def compute_accuracy(predicted, expected):
     '''
     eq = [1 if predicted[i] == expected[i] else 0 for i in range(len(predicted))]
     return np.mean(eq)
-

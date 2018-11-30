@@ -56,8 +56,8 @@ class ModelRunner:
 
         # load the dataset
         print("Exporting data to correct format")
-        (train_texts, train_cats) = self.train_set.export()
-        (dev_texts, dev_cats) = self.dev_set.export()
+        (train_texts, train_cats) = self.train_set.export(lowercase=self.opt["lowercase"], prefix=self.opt["prefix"])
+        (dev_texts, dev_cats) = self.dev_set.export(lowercase=self.opt["lowercase"], prefix=self.opt["prefix"])
 
         train_cats = [{"g": c} for c in train_cats]
         dev_cats = [{"g": c} for c in dev_cats]

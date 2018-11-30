@@ -6,13 +6,15 @@ from data.reader import Data
 from torchtext.vocab import Vectors, FastText
 
 
-def load_dataset(train, dev, pretrained=None):
+def load_dataset(train, dev, opt={}):
     tokenize = lambda x: x.split()
     TEXT = data.Field(sequential=True, tokenize=tokenize, lower=True, include_lengths=True, batch_first=True)
     LABEL = data.LabelField()
 
-    train_data = GxG(list(zip(*train.export())), TEXT, LABEL)
-    dev_data = GxG(list(zip(*dev.export())), TEXT, LABEL)
+    train_data = GxG(list(zip(*train.export(lowercase=opt["lowercase"], prefix=opt["prefix"]))), TEXT, LABEL)
+    dev_data = GxG(list(zip(*dev.export(lowercase=opt["lowercase"], prefix=opt["prefix"]))), TEXT, LABEL)
+
+    pretrained = opt["pretrained"] if "pretrained" in opt else None
 
     print("Pretrained", pretrained)
     if pretrained == "fasttext":

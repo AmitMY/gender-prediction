@@ -25,7 +25,6 @@ def listdir(directory, full=True):
     return files
 
 
-
 def savetodir(directory, data, name):
     ''' Saving data to a directory with specific filename
 
@@ -40,4 +39,3 @@ def savetodir(directory, data, name):
 def rmfile(path):
     if os.path.isfile(path):
         os.remove(path)
-

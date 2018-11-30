@@ -32,16 +32,21 @@ scenarios = {
 }
 
 models = {
-    "Spacy": (spacy_runner, "nl_core_news_sm", {}),
+    "Spacy.n.n": (spacy_runner, "nl_core_news_sm", {"lowercase": False, "prefix": False}),
+    "Spacy.n.y": (spacy_runner, "nl_core_news_sm", {"lowercase": False, "prefix": True}),
+    "Spacy.y.n": (spacy_runner, "nl_core_news_sm", {"lowercase": True, "prefix": False}),
+    "Spacy.y.y": (spacy_runner, "nl_core_news_sm", {"lowercase": True, "prefix": True}),
 }
 
 # Add all of the pytorch models
-# for m in ["RNN", "CNN", "RCNN", "LSTM", "LSTMAttention", "SelfAttention"]:
-#     models[m] = (pytorch_runner, m, {})
-#     models[m + "+"] = (pytorch_runner, m, {"pretrained": "fasttext"})
+for m in ["RNN", "CNN", "RCNN", "LSTM", "LSTMAttention", "SelfAttention"]:
+    models[m + ".y.n"] = (pytorch_runner, m, {"lowercase": True, "prefix": False})
+    models[m + ".y.y"] = (pytorch_runner, m, {"lowercase": True, "prefix": True})
+    models[m + ".y.n+"] = (pytorch_runner, m, {"lowercase": True, "prefix": False, "pretrained": "fasttext"})
+    models[m + ".y.y+"] = (pytorch_runner, m, {"lowercase": True, "prefix": True, "pretrained": "fasttext"})
 
-# NUM_RUNS = 3
-# models = {w + "." + str(i): c for w, c in models.items() for i in range(NUM_RUNS)}
+NUM_RUNS = 1
+models = {w + "." + str(i): c for w, c in models.items() for i in range(NUM_RUNS)}
 
 res_file_name = "results.json"
 
@@ -92,7 +97,7 @@ for name, (train, dev) in scenarios_shuffled:
                 else:
                     early_stop += 1
 
-                if early_stop >= 10:
+                if early_stop >= 5:
                     break
 
             try:
