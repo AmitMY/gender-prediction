@@ -1,25 +1,47 @@
 from json import load, dump
+from random import shuffle
 
 from data.reader import Data
-from models.spacy.main import main as spacy_main
-from models.pytorch.main import main as pytorch_main
+from models.spacy.main import ModelRunner as spacy_runner
+from models.pytorch.main import ModelRunner as pytorch_runner
+from utils.file_system import makedir, rmfile
+
+import hashlib
+
+data = {
+    "original": Data("All", "train", ["twitter", "youtube", "news"]),
+
+    "twitter": Data("Twitter", "train", ["twitter"]),
+    "youtube": Data("Youtube", "train", ["youtube"]),
+    "news": Data("News", "train", ["news"]),
+
+    "twitter+news": Data("Twitter, News", "train", ["twitter", "news"]),
+    "twitter+youtube": Data("Twitter, Youtube", "train", ["twitter", "youtube"]),
+    "news+youtube": Data("News, Youtube", "train", ["news", "youtube"]),
+
+}
 
 scenarios = {
-    "All 90%|All 10%": Data("All", "train").split(),
-    "Twitter 90%|Twitter 10%": Data("Train", "train", ["twitter"]).split(),
-    "YouTube 90%|YouTube 10%": Data("Train", "train", ["youtube"]).split(),
-    "News 90%|News 10%": Data("Train", "train", ["news"]).split(),
-    "Twitter, News|YouTube": (Data("Train", "train", ["twitter", "news"]), Data("Train", "train", ["youtube"])),
-    "Twitter, YouTube|News": (Data("Train", "train", ["twitter", "youtube"]), Data("Train", "train", ["news"])),
-    "YouTube, News|Twitter": (Data("Train", "train", ["youtube", "news"]), Data("Train", "train", ["twitter"])),
+    "Original 90%|Original 10%": data["original"].split(),
+    "Twitter 90%|Twitter 10%": data["twitter"].split(),
+    "YouTube 90%|YouTube 10%": data["youtube"].split(),
+    "News 90%|News 10%": data["news"].split(),
+    "Twitter, News|YouTube": (data["twitter+news"], data["youtube"]),
+    "Twitter, YouTube|News": (data["twitter+youtube"], data["news"]),
+    "YouTube, News|Twitter": (data["news+youtube"], data["twitter"]),
 }
 
 models = {
-    "Spacy": (spacy_main, "nl_core_news_sm"),
-    "LSTM": (pytorch_main, "lstm"),
-    "LSTMAttention": (pytorch_main, "lstm_attention"),
-    "SelfAttention": (pytorch_main, "self_attention"),
+    "Spacy": (spacy_runner, "nl_core_news_sm", {}),
 }
+
+# Add all of the pytorch models
+# for m in ["RNN", "CNN", "RCNN", "LSTM", "LSTMAttention", "SelfAttention"]:
+#     models[m] = (pytorch_runner, m, {})
+#     models[m + "+"] = (pytorch_runner, m, {"pretrained": "fasttext"})
+
+# NUM_RUNS = 3
+# models = {w + "." + str(i): c for w, c in models.items() for i in range(NUM_RUNS)}
 
 res_file_name = "results.json"
 
@@ -32,31 +54,54 @@ except:
 print("Current Results")
 print(results)
 
-for name, (train, dev) in scenarios.items():
+checkpoints_dir = "models/checkpoints/"
+makedir(checkpoints_dir)
+
+scenarios_shuffled = list(scenarios.items())
+shuffle(scenarios_shuffled)
+for name, (train, dev) in scenarios_shuffled:
+
+    hashed = hashlib.md5(name.encode('utf-8')).hexdigest()
+    checkpoints_dir_scenario = checkpoints_dir + hashed + "/"
+    makedir(checkpoints_dir_scenario)
+
     if name not in results:
         results[name] = {}
-    for model_name, (runner, model) in models.items():
-        print(name, model_name, model)
+    for model_name, (runner, model, options) in models.items():
+        print(name, model_name, model, options, hashed)
         if model_name in results[name]:
-            print("Skipping", model_name, name)
+            print("Skipping", model_name, name, options)
         else:
             all_scores = []
             best_score = 0
             early_stop = 0
-            for score in runner(model=model, train=train, dev=dev):
+
+            inst = runner(model=model, train=train, dev=dev, opt=options)
+
+            for score in inst.train():
                 all_scores.append(score)
                 if score > best_score:
                     best_score = score
                     early_stop = 0
+
+                    # Save
+                    print("Saving...")
+                    f_name = checkpoints_dir_scenario + model_name
+                    rmfile(f_name)
+                    inst.save(f_name)
                 else:
                     early_stop += 1
 
-                if early_stop > 5:
+                if early_stop >= 10:
                     break
 
+            try:
+                results = load(open(res_file_name, "r"))
+            except:
+                pass
             results[name][model_name] = {
                 "scores": all_scores,
                 "best": best_score
             }
             dump(results, open(res_file_name, "w"), indent=2)
-            print(model_name, name, best_score)
+            print(model_name, name, options, best_score)

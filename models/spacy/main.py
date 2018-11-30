@@ -10,9 +10,6 @@ see the documentation:
 Compatible with: spaCy v2.0.0+
 """
 from __future__ import unicode_literals, print_function
-import plac
-import random
-from pathlib import Path
 
 import spacy
 from spacy.util import minibatch, compounding
@@ -21,79 +18,81 @@ from tqdm import tqdm
 from data.reader import Data
 
 
-def main(model, train, dev, output_dir=None, n_iter=20):
-    nlp = spacy.load(model)  # load existing spaCy model
-    print("Loaded model '%s'" % model)
+class ModelRunner:
+    def __init__(self, model, train, dev, opt={}):
+        self.nlp = spacy.load(model)
 
-    # add the text classifier to the pipeline if it doesn't exist
-    # nlp.create_pipe works for built-ins that are registered with spaCy
-    if 'textcat' not in nlp.pipe_names:
-        textcat = nlp.create_pipe('textcat')
-        nlp.add_pipe(textcat, last=True)
-    # otherwise, get it, so we can add labels to it
-    else:
-        textcat = nlp.get_pipe('textcat')
+        self.train_set = train
+        self.dev_set = dev
+        self.opt = opt
 
-    # add label to text classifier
-    textcat.add_label('g')
+    def load(self, path):
+        self.nlp = spacy.load(path)
 
-    # load the dataset
-    print("Exporting data to correct format")
-    (train_texts, train_cats) = train.export()
-    (dev_texts, dev_cats) = dev.export()
+    def save(self, path):
+        self.nlp.to_disk(path)
 
-    train_cats = [{"g": c} for c in train_cats]
-    dev_cats = [{"g": c} for c in dev_cats]
+    def cat(self, test):
+        (texts, _) = test.export()
 
-    n_texts = len(train_texts)
+        docs = (self.nlp(text) for text in texts)
 
-    print("Using {} examples ({} training, {} evaluation)".format(n_texts, len(train_texts), len(dev_texts)))
-    train_data = list(zip(train_texts, [{'cats': cats} for cats in train_cats]))
+        for doc in self.nlp.get_pipe("textcat").pipe(docs):
+            print(doc.cats["g"])
+            print(doc)
 
-    # get names of other pipes to disable them during training
-    other_pipes = [pipe for pipe in nlp.pipe_names if pipe != 'textcat']
-    with nlp.disable_pipes(*other_pipes):  # only train textcat
-        optimizer = nlp.begin_training()
-        print("Training the model...")
-        print('{:^5}\t{:^5}\t{:^5}\t{:^5}\t{:^5}'.format('LOSS', 'A', 'P', 'R', 'F'))
-        for i in range(n_iter):
-            losses = {}
-            # batch up the examples using spaCy's minibatch
-            batches = minibatch(train_data, size=compounding(4., 32., 1.001))
-            for batch in tqdm(list(batches)):
-                texts, annotations = zip(*batch)
-                nlp.update(texts, annotations, sgd=optimizer, drop=0.2,
-                           losses=losses)
-            with textcat.model.use_params(optimizer.averages):
-                # evaluate on the dev data split off in load_data()
-                scores = evaluate(nlp.tokenizer, textcat, dev_texts, dev_cats)
+    def train(self):
+        # add the text classifier to the pipeline if it doesn't exist
+        # nlp.create_pipe works for built-ins that are registered with spaCy
+        if 'textcat' not in self.nlp.pipe_names:
+            textcat = self.nlp.create_pipe('textcat')
+            self.nlp.add_pipe(textcat, last=True)
+        # otherwise, get it, so we can add labels to it
+        else:
+            textcat = self.nlp.get_pipe('textcat')
 
-                yield scores['acc']
-            print('{0:.3f}\t{1:.3f}\t{1:.3f}\t{2:.3f}\t{3:.3f}'  # print a simple table
-                  .format(losses['textcat'], scores['acc'], scores['textcat_p'],
-                          scores['textcat_r'], scores['textcat_f']))
+        # add label to text classifier
+        textcat.add_label('g')
 
-    # test the trained model
-    test_text = "This movie sucked"
-    doc = nlp(test_text)
-    print(test_text, doc.cats)
+        # load the dataset
+        print("Exporting data to correct format")
+        (train_texts, train_cats) = self.train_set.export()
+        (dev_texts, dev_cats) = self.dev_set.export()
 
-    if output_dir is not None:
-        output_dir = Path(output_dir)
-        if not output_dir.exists():
-            output_dir.mkdir()
-        nlp.to_disk(output_dir)
-        print("Saved model to", output_dir)
+        train_cats = [{"g": c} for c in train_cats]
+        dev_cats = [{"g": c} for c in dev_cats]
 
-        # test the saved model
-        print("Loading from", output_dir)
-        nlp2 = spacy.load(output_dir)
-        doc2 = nlp2(test_text)
-        print(test_text, doc2.cats)
+        n_texts = len(train_texts)
+
+        print("Using {} examples ({} training, {} evaluation)".format(n_texts, len(train_texts), len(dev_texts)))
+        train_data = list(zip(train_texts, [{'cats': cats} for cats in train_cats]))
+
+        # get names of other pipes to disable them during training
+        other_pipes = [pipe for pipe in self.nlp.pipe_names if pipe != 'textcat']
+        with self.nlp.disable_pipes(*other_pipes):  # only train textcat
+            optimizer = self.nlp.begin_training()
+            print("Training the model...")
+            print('{:^5}\t{:^5}\t{:^5}\t{:^5}\t{:^5}'.format('LOSS', 'A', 'P', 'R', 'F'))
+            while True:
+                losses = {}
+                # batch up the examples using spaCy's minibatch
+                batches = minibatch(train_data, size=compounding(4., 32., 1.001))
+                for batch in tqdm(list(batches)):
+                    texts, annotations = zip(*batch)
+                    self.nlp.update(texts, annotations, sgd=optimizer, drop=0.2,
+                                    losses=losses)
+                with textcat.model.use_params(optimizer.averages):
+                    # evaluate on the dev data split off in load_data()
+                    scores = evaluate(self.nlp, textcat, dev_texts, dev_cats)
+
+                    yield scores['acc'] * 100
+                print('{0:.3f}\t{1:.3f}\t{1:.3f}\t{2:.3f}\t{3:.3f}'  # print a simple table
+                      .format(losses['textcat'], scores['acc'], scores['textcat_p'],
+                              scores['textcat_r'], scores['textcat_f']))
 
 
-def evaluate(tokenizer, textcat, texts, cats):
-    docs = (tokenizer(text) for text in texts)
+def evaluate(nlp, textcat, texts, cats):
+    docs = (nlp(text) for text in texts)
     tp = 1e-8  # True positives
     fp = 1e-8  # False positives
     fn = 1e-8  # False negatives
@@ -125,10 +124,13 @@ def evaluate(tokenizer, textcat, texts, cats):
 
 
 if __name__ == '__main__':
-    train, dev = Data("All", "train", tokenize=True).split()
+    train, dev = Data("All", "train", tokenize=False).split()
+    test = Data("All", "test", tokenize=False)
     # train = Data("Train", "train", ["twitter", "youtube"])
     # dev = Data("Dev", "train", ["news"])
 
     print("\n")
 
-    main(model="nl_core_news_sm", train=train, dev=dev, n_iter=50)
+    inst = ModelRunner(model="nl_core_news_sm", train=train, dev=dev)
+    inst.load("../checkpoints/Spacy/")
+    inst.cat(test)
