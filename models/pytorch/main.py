@@ -121,9 +121,9 @@ class ModelRunner:
             epoch += 1
             train_loss, train_acc = train_model(epoch)
             val_loss, val_acc = eval_model(self.model, self.dev_iter)
-            yield val_acc
             print(
                 f'Epoch: {epoch+1:02}, Train Loss: {train_loss:.3f}, Train Acc: {train_acc:.2f}%, Val. Loss: {val_loss:3f}, Val. Acc: {val_acc:.2f}%')
+            yield val_acc
 
     # test_loss, test_acc = eval_model(model, test_iter)
     # print(f'Test Loss: {test_loss:.3f}, Test Acc: {test_acc:.2f}%')
@@ -154,6 +154,6 @@ class ModelRunner:
 if __name__ == "__main__":
     train, dev = Data("All", "train", ["news"], tokenize=False).split()
 
-    runner = ModelRunner("LSTMAttention", train, dev)
+    runner = ModelRunner("LSTMAttention", train, dev, {"lowercase": True, "prefix": False})
     for d in runner.train():
         print(d)
