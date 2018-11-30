@@ -6,7 +6,8 @@ OUTFILE=$2
 
 SRCLANG=nl
 
-TOKENIZER=external
+BASEPATH=models/lm_based/
+TOKENIZER=$BASEPATH/external
 
 # remove @username
 #perl -pe 's/(^| )@[^ ]+( |$)/ /g;' $INFILE > $INFILE.pp1

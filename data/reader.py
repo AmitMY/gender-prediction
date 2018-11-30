@@ -1,7 +1,7 @@
 from functools import lru_cache
 import random
 from utils.file_system import listdir
-from regex import findall
+from re import findall
 
 
 import os

@@ -4,12 +4,14 @@ from random import shuffle
 from data.reader import Data
 from models.spacy.main import ModelRunner as spacy_runner
 from models.pytorch.main import ModelRunner as pytorch_runner
+from models.lm_based.main import ModelRunner as kenlm_runner
+from models.sklearn_based.main import ModelRunner as sklearn_runner
 from utils.file_system import makedir, rmfile
 
 import hashlib
 
 data = {
-    "original": Data("All", "train", ["twitter", "youtube", "news"]),
+    # "original": Data("All", "train", ["twitter", "youtube", "news"]),
 
     "twitter": Data("Twitter", "train", ["twitter"]),
     "youtube": Data("Youtube", "train", ["youtube"]),
@@ -22,7 +24,7 @@ data = {
 }
 
 scenarios = {
-    "Original 90%|Original 10%": data["original"].split(),
+    # "Original 90%|Original 10%": data["original"].split(),
     "Twitter 90%|Twitter 10%": data["twitter"].split(),
     "YouTube 90%|YouTube 10%": data["youtube"].split(),
     "News 90%|News 10%": data["news"].split(),
@@ -32,18 +34,24 @@ scenarios = {
 }
 
 models = {
-    "Spacy.n.n": (spacy_runner, "nl_core_news_sm", {"lowercase": False, "prefix": False}),
-    "Spacy.n.y": (spacy_runner, "nl_core_news_sm", {"lowercase": False, "prefix": True}),
-    "Spacy.y.n": (spacy_runner, "nl_core_news_sm", {"lowercase": True, "prefix": False}),
-    "Spacy.y.y": (spacy_runner, "nl_core_news_sm", {"lowercase": True, "prefix": True}),
+    "Spacy.n": (spacy_runner, "nl_core_news_sm", {"lowercase": False, "prefix": False}),
+    "Spacy.y": (spacy_runner, "nl_core_news_sm", {"lowercase": True, "prefix": False}),
 }
+
+for ngram in [2, 3, 4, 5, 6, 7, 8, 9]:
+    models["KENLM.n." + str(ngram)] = (kenlm_runner, "KENLM", {"lowercase": False, "ngram": ngram})
+    models["KENLM.y." + str(ngram)] = (kenlm_runner, "KENLM", {"lowercase": True, "ngram": ngram})
+
+for t in ['svm', 'log', 'rf', 'nb', 'knn']:
+    models["SKLearn-" + t + ".n"] = (sklearn_runner, t, {"lowercase": False})
+    models["SKLearn-" + t + ".y"] = (sklearn_runner, t, {"lowercase": True})
 
 # Add all of the pytorch models
 for m in ["RNN", "CNN", "RCNN", "LSTM", "LSTMAttention", "SelfAttention"]:
-    models[m + ".y.n"] = (pytorch_runner, m, {"lowercase": True, "prefix": False})
-    models[m + ".y.y"] = (pytorch_runner, m, {"lowercase": True, "prefix": True})
-    models[m + ".y.n+"] = (pytorch_runner, m, {"lowercase": True, "prefix": False, "pretrained": "fasttext"})
-    models[m + ".y.y+"] = (pytorch_runner, m, {"lowercase": True, "prefix": True, "pretrained": "fasttext"})
+    models[m + ".y"] = (pytorch_runner, m, {"lowercase": True, "prefix": False})
+    models[m + ".n"] = (pytorch_runner, m, {"lowercase": False, "prefix": False})
+    models[m + ".y+"] = (pytorch_runner, m, {"lowercase": True, "prefix": False, "pretrained": "fasttext"})
+    models[m + ".n+"] = (pytorch_runner, m, {"lowercase": False, "prefix": False, "pretrained": "fasttext"})
 
 NUM_RUNS = 1
 models = {w + "." + str(i): c for w, c in models.items() for i in range(NUM_RUNS)}
@@ -72,9 +80,12 @@ for name, (train, dev) in scenarios_shuffled:
 
     if name not in results:
         results[name] = {}
-    for model_name, (runner, model, options) in models.items():
+
+    models_shuffled = list(models.items())
+    shuffle(models_shuffled)
+    for model_name, (runner, model, options) in models_shuffled:
         print(name, model_name, model, options, hashed)
-        if model_name in results[name]:
+        if model_name in results[name] and results[name][model_name]["best"] > 0:
             print("Skipping", model_name, name, options)
         else:
             all_scores = []
@@ -104,6 +115,10 @@ for name, (train, dev) in scenarios_shuffled:
                 results = load(open(res_file_name, "r"))
             except:
                 pass
+
+            if name not in results:
+                results[name] = {}
+
             results[name][model_name] = {
                 "scores": all_scores,
                 "best": best_score

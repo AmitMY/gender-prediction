@@ -1,7 +1,8 @@
 import argparse
 import os
 import subprocess
-from language_model import LanguageModel
+
+from models.lm_based.language_model import LanguageModel
 from utils.file_system import rmdir
 from collections import OrderedDict
 import numpy as np

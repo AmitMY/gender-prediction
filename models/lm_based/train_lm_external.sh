@@ -1,6 +1,7 @@
 #!/bin/bash
 MODELDIR=$1
-MTPATH=external
+BASEPATH=models/lm_based/
+MTPATH=$BASEPATH/external
 if [ $# -lt 1 ]
 then
     echo "Too few input arguments"
@@ -15,7 +16,7 @@ echo $ORDER
 
 echo " ----- STEP 1 ----- "
 # Preprocess: tokenize, DO NOT lower-case
-sh preprocess.sh $INFILE $INFILE.lc-tok $MTPATH
+sh $BASEPATH/preprocess.sh $INFILE $INFILE.lc-tok $MTPATH
 #cp $INFILE $INFILE.lc-tok
 
 echo " ----- STEP 2 ----- "
