@@ -1,8 +1,10 @@
 from functools import lru_cache
 from itertools import chain
 import random
-from utils.file_system import listdir
+from utils.file_system import listdir, savetodir
 from regex import findall
+
+import argparse
 
 import os
 import spacy
@@ -46,15 +48,9 @@ class Data:
         return data1, data2
 
     def export(self):
-        pairs = [(w + ": " + c["text"], 0 if c["gender"] == "M" else 1)
+        #pairs = [(w + ": " + c["text"], 0 if c["gender"] == "M" else 1)
+        pairs = [(c["text"], 0 if c["gender"] == "M" else 1)
                  for w, co in self.categories.items() for c in co]
 
         return list(zip(*pairs))  # List of texts, list of tags
 
-
-if __name__ == "__main__":
-    data = Data("All", "train", tokenize=True)
-    train, dev = data.split()
-
-    texts, categories = train.export()
-    print("\n", texts[-1], "|", categories[-1])

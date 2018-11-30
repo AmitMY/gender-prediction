@@ -25,6 +25,19 @@ def listdir(directory, full=True):
     return files
 
 
+
+def savetodir(directory, data, name):
+    ''' Saving data to a directory with specific filename
+
+       :param directory: the directory to save the data to
+       :param data: the list of data entries to save
+       :param name: the filename
+    '''
+    with open(os.path.join(directory, name), 'w') as out:
+        out.write('\n'.join([str(entry) for entry in data]))
+
+
 def rmfile(path):
     if os.path.isfile(path):
         os.remove(path)
+
