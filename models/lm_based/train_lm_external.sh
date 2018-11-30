@@ -1,6 +1,6 @@
 #!/bin/bash
 MODELDIR=$1
-BASEPATH=models/lm_based/
+BASEPATH=$( dirname "$0" )
 MTPATH=$BASEPATH/external
 if [ $# -lt 1 ]
 then

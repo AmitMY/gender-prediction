@@ -9,6 +9,7 @@ class LanguageModel():
 
             :param text_file: the file with data to build a language model from
         '''
+        kenlm.LanguageModel.order = 10
         self.text_file = text_file
         self.ngram = ngram
 
