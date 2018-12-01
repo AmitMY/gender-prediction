@@ -95,12 +95,6 @@ def compare_file(lm_models, dev_set_file):
     return scores
 
 
-def cleanup():
-    ''' Removes all temporary files and folders
-    '''
-    rmdir('tmp')
-
-
 def get_labels_from_file(file):
     ''' Retrieving labels from a file
 

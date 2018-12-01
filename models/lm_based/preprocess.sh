@@ -6,13 +6,13 @@ OUTFILE=$2
 
 SRCLANG=nl
 
-BASEPATH=models/lm_based/
+BASEPATH=$( dirname "$0" )
 TOKENIZER=$BASEPATH/external
 
 # remove @username
-#perl -pe 's/(^| )@[^ ]+( |$)/ /g;' $INFILE > $INFILE.pp1
+#perl -ne 's/[^ ]+@[^ ]+ / /g; print;' $INFILE > $INFILE.pp1
 # remove #-tags
-#perl -pe 's/(^| )#[^ ]+( |$)/ /g;' $INFILE.pp1 > $INFILE.pp2
+#perl -ne 's/[^ ]+#[^ ]+ / /g; print;' $INFILE.pp1 > $INFILE.pp2
 # remove ' `
 
 $TOKENIZER/tokenizer.perl -l $SRCLANG < $INFILE > $OUTFILE #| $TOKENIZER/lowercase.perl > $OUTFILE
