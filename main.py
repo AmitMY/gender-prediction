@@ -38,7 +38,7 @@ models = {
     "Spacy.y": (spacy_runner, "nl_core_news_sm", {"lowercase": True, "prefix": False}),
 }
 
-for ngram in range(1, 10):
+for ngram in range(3, 7):
     models["KENLM.n." + str(ngram)] = (kenlm_runner, "KENLM", {"lowercase": False, "ngram": ngram})
     models["KENLM.y." + str(ngram)] = (kenlm_runner, "KENLM", {"lowercase": True, "ngram": ngram})
 
@@ -53,7 +53,7 @@ for m in ["RNN", "CNN", "RCNN", "LSTM", "LSTMAttention", "SelfAttention"]:
     models[m + ".y+"] = (pytorch_runner, m, {"lowercase": True, "prefix": False, "pretrained": "fasttext"})
     models[m + ".n+"] = (pytorch_runner, m, {"lowercase": False, "prefix": False, "pretrained": "fasttext"})
 
-NUM_RUNS = 2
+NUM_RUNS = 3
 models = {w + "." + str(i): c for w, c in models.items() for i in range(NUM_RUNS)}
 
 res_file_name = "results.json"
