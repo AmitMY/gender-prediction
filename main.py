@@ -69,7 +69,7 @@ for m in ["RNN", "CNN", "RCNN", "LSTM", "LSTMAttention", "SelfAttention"]:
     models[m + ".y+"] = (pytorch_runner, m, {"lowercase": True, "prefix": False, "pretrained": "fasttext"})
     models[m + ".n+"] = (pytorch_runner, m, {"lowercase": False, "prefix": False, "pretrained": "fasttext"})
 
-NUM_RUNS = 3
+NUM_RUNS = 2
 models = {w + "." + str(i): c for w, c in models.items() for i in range(NUM_RUNS)}
 
 res_file_name = "results.json"
@@ -88,6 +88,8 @@ makedir(checkpoints_dir)
 
 scenarios_shuffled = list(scenarios.items())
 shuffle(scenarios_shuffled)
+print(scenarios_shuffled[0])
+exit()
 for name, (train, dev) in scenarios_shuffled:
 
     hashed = hashlib.md5(name.encode('utf-8')).hexdigest()
