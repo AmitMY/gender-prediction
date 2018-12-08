@@ -6,6 +6,7 @@ import importlib
 import numpy as np 
 import pickle
 
+from data.reader import Data 
 mod = importlib.import_module("models.sklearn-based.postagger")
 
 from sklearn.feature_extraction.text import CountVectorizer
