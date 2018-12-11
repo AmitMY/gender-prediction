@@ -1,6 +1,0 @@
-<doc id="1" genre="twitter" gender="F">
-Ik weet ook gewoon niet meer wie en wat ik ben en ik wil alles gewoon even niet meer
-</doc>
-<doc id="2" genre="twitter" gender="M">
-@HaroldinhoXL Foto’s van laten maken, voor die tijd dat de badkamer vetnieuwd moet worden…
-</doc>
