@@ -1,11 +1,12 @@
 from json import load, dump
 from random import shuffle
 
-from data.reader import Data
 from models.spacy.main import ModelRunner as spacy_runner
 from models.pytorch.main import ModelRunner as pytorch_runner
 from models.lm_based.main import ModelRunner as kenlm_runner
 from models.sklearn_based.main import ModelRunner as sklearn_runner
+from data.reader import Data
+
 from utils.file_system import makedir, rmfile
 
 import hashlib
@@ -28,6 +29,7 @@ data = {
     "news+youtube+csi": Data("News, Youtube, CSI", "train", ["news", "youtube", "csi"]),
 
 }
+
 scenarios = {
     # "Original 90%|Original 10%": data["original"].split(),
     # In domain
@@ -52,12 +54,13 @@ scenarios = {
 models = {
     "Spacy.n": (spacy_runner, "nl_core_news_sm", {"lowercase": False, "prefix": False}),
     "Spacy.y": (spacy_runner, "nl_core_news_sm", {"lowercase": True, "prefix": False}),
+    "Spacy-clusters.n": (spacy_runner, "nl_core_news_sm", {"lowercase": False, "prefix": False, "clusters": True}),
+    "Spacy-clusters.y": (spacy_runner, "nl_core_news_sm", {"lowercase": True, "prefix": False, "clusters": True}),
 }
 
 for ngram in range(3, 7):
     models["KENLM.n." + str(ngram)] = (kenlm_runner, "KENLM", {"lowercase": False, "ngram": ngram})
     models["KENLM.y." + str(ngram)] = (kenlm_runner, "KENLM", {"lowercase": True, "ngram": ngram})
-
 for t in ['svm', 'log', 'rf', 'nb', 'knn']:
     models["SKLearn-" + t + ".n"] = (sklearn_runner, t, {"lowercase": False})
     models["SKLearn-" + t + ".y"] = (sklearn_runner, t, {"lowercase": True})
@@ -89,7 +92,7 @@ makedir(checkpoints_dir)
 scenarios_shuffled = list(scenarios.items())
 shuffle(scenarios_shuffled)
 print(scenarios_shuffled[0])
-exit()
+
 for name, (train, dev) in scenarios_shuffled:
 
     hashed = hashlib.md5(name.encode('utf-8')).hexdigest()

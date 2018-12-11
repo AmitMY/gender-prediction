@@ -3,7 +3,7 @@ from sklearn import preprocessing
 from sklearn.base import BaseEstimator
 import numpy as np
 from string import printable
-from tweet_tokenizer import TweetTokenizer
+from models.sklearn_based.tweet_tokenizer import TweetTokenizer
 
 tokenizer = TweetTokenizer()
 

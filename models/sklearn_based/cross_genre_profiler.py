@@ -1,21 +1,17 @@
-from feature_pipeline import word_unigrams
-from feature_pipeline import word_bigrams
-from feature_pipeline import char_ngrams
-from feature_pipeline import dim_count 
-from feature_pipeline import man_count 
-from feature_pipeline import woman_count 
-from feature_pipeline import article_count
-from feature_pipeline import cluster_info
+import importlib
+
+mod_feat = importlib.import_module("models.sklearn_based.feature_pipeline")
+
+
+from models.sklearn_based.feature_pipeline import word_unigrams, word_bigrams, char_ngrams, dim_count, man_count
+from models.sklearn_based.feature_pipeline import woman_count, article_count, cluster_info, sent_length, punctuation_features
 
 #from feature_pipeline import diminutives
 #from feature_pipeline import noun_count
 #from feature_pipeline import adjective_count
-from feature_pipeline import sent_length
-
-from feature_pipeline import punctuation_features
 from sklearn.preprocessing import Normalizer
 from sklearn.pipeline import FeatureUnion
-from utils2 import get_classifier
+from models.sklearn_based.utils2 import get_classifier
 from sklearn.pipeline import Pipeline
 
 
@@ -51,7 +47,6 @@ class CrossGenrePerofiler():
 
         #if 'punctuation' in features:
         #    fs.append(punctuation_features())        
-
         fu = FeatureUnion(fs, n_jobs=1)
         self.pipeline = Pipeline([('features', fu),
                                   ('scale', Normalizer()),

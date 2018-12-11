@@ -11,24 +11,22 @@ from sklearn.preprocessing import Normalizer
 import numpy as np
 import json
 #from spelling_error_profiler import SpellingError
-from features import PunctuationFeatures
-from text_cleaner import TextCleaner
-from cluster_extractor import ClusterExtractor
+from models.sklearn_based.features import PunctuationFeatures
+from models.sklearn_based.text_cleaner import TextCleaner
+from models.sklearn_based.cluster_extractor import ClusterExtractor
 ###### TO ADD NEW FEATURES THAT HAVE NO BUILD-IN, BUILD YOUR OWN TRANSFORMER ################
 
 import json
 
 
 class ClusterInfo(BaseEstimator):
-    def __init__(self,fileName='/home/evanmas2/NMTdata/data/ClinSharedTask/cluster-semantic-vectors/glove_clusters_0.011442950_words.json'):
+    def __init__(self,fileName='glove_clusters_0.011442950_words.json'):
         self.fileName=fileName
         self.data=self.getClusters()   
   
     def getClusters(self):
-        print("get data")
         with open(self.fileName) as json_file:
             data = json.load(json_file)
-        print("got data")
         data_inv = {}
         for k, v in data.items():
             for i in v:
@@ -40,30 +38,9 @@ class ClusterInfo(BaseEstimator):
         print("Look for clusters")
         for doc in documents:
             clusterS = [self.data[s] if s in self.data else "0" for s in doc.split()]               
-            #for s in doc.split():
-                #cluster=[k for k, v in self.data.items() if s.lower() in v]
-                #cluster = [self.data[s] for s in doc.split() if s in self.data else 0]               
-                #if s in self.data: 
-                #    clusterS.append(self.data[s])
-                #else:
-                #    clusterS.append("NA")
-            
             clusterL.append(" ".join(clusterS)) 
         print("Example cluster")
         print(clusterL[1])
-        
-        #onehotenc = preprocessing.Multi(handle_unknown='ignore')
-        #print("prep onehotenc")
-        #print(str(np.array(clusterL).shape()))
-        #exit()
-
-        #onehotenc.fit(np.array(clusterL))
-        #print("fitting done") 
-        #X=onehotenc.transform(clusterL).toarray().T
-        #X = np.array(clusterL).T
-        #print("X is done") 
-        #if not hasattr(self,'scalar'):
-        #    self.scalar=preprocessing.StandardScaler().fit(X)
         
         return clusterL
    
