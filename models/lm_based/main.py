@@ -20,22 +20,27 @@ class ModelRunner:
     ''' A main model runner for the LM-based models
     '''
 
-    def __init__(self, model, train, dev, opt={}):
+    def __init__(self, model, train=None, dev=None, opt={}):
         ''' Init method for the model runner
 
             :param model: the name of the model
-            :param train: the train data (an instance of Data)
-            :param dev: the dev data (an instance of Data)
+            :param train: the train data (an instance of Data, or None - in case of loading a model)
+            :param dev: the dev data (an instance of Data,  or None - in case of loading a model)
             :param opt: a dictionary with all options
         '''
         self.lm_models = {}
         self.model = model
 
-        self.train_sents, self.train_labels = train.export(lowercase=opt["lowercase"])
+        self.train_sents = None
+        self.train_labels = None
+        if train is not None:
+            self.train_sents, self.train_labels = train.export(lowercase=opt["lowercase"])
+    
         self.dev_sents = None
         self.dev_labels = None
-        if not dev is None:
+        if dev is not None:
             self.dev_sents, self.dev_labels = dev.export(lowercase=opt["lowercase"])
+            
         self.ngram = 3
         if 'ngram' in opt:
             self.ngram = opt['ngram']
@@ -107,8 +112,11 @@ class ModelRunner:
         '''
         accuracy = 0.0
         if test is None:
-            test_sents = self.dev_sents
-            test_labels = self.dev_labels
+            if self.dev_sents is not None and self.dev_labels is not None:
+                test_sents = self.dev_sents
+                test_labels = self.dev_labels
+            else:
+                raise ValueError('No test set provided!')
         else:
             test_sents, test_labels = test.export(lowercase=self.lowercase)
 

@@ -18,10 +18,11 @@ embedding_length = 300
 
 
 class ModelRunner:
-    def __init__(self, model, train, dev, opt={}):
+    def __init__(self, model, train=None, dev=None, opt={}):
 
-        self.TEXT, self.vocab_size, self.train_iter, self.dev_iter, self.vectors = \
-            load_dataset(train, dev, opt)
+        if train is not None and dev is not None:
+            self.TEXT, self.vocab_size, self.train_iter, self.dev_iter, self.vectors = \
+                load_dataset(train, dev, opt)
 
         self.vectors = self.vectors if "pretrained" in opt else None
         if model == "LSTM":
