@@ -1,6 +1,6 @@
 from json import load
 
-results = load(open("resultsEva.json"))
+results = load(open("results.json"))
 
 models = list(sorted(list(set.union(*[set(r.keys()) for r in results.values()]))))
 table_header = ["Model"] + models

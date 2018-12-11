@@ -22,12 +22,9 @@ def cached_tokenizer(text):
 
 
 class Data:
-    def __init__(self, name, source, specific=None, tokenize=True, clusters=False):
-        self.clusterdata = None
-        self.clusters=clusters
-        
-        if self.clusters == True:
-            self.clusterdata=self.loadClusters()
+    def __init__(self, name, source, specific=None, tokenize=True):
+         # Now loading cluster data
+         self.clusterdata=self.loadClusters()
             
         if isinstance(source, str):
             files = listdir(os.path.join(script_dir, source))
@@ -49,7 +46,7 @@ class Data:
         random.Random(1234).shuffle(data)  # Same shuffle seed
         return data
 
-    def loadClusters(self, clusterF='/home/evanmas2/NMTdata/data/ClinSharedTask/cluster-semantic-vectors/glove_clusters_0.011442950_words.json'):
+    def loadClusters(self, clusterF='glove_clusters_0.011442950_words.json'):
         with open(clusterF) as json_file:
             data = json.load(json_file)
         data_inv = {}
@@ -73,7 +70,7 @@ class Data:
         clusterS = [self.clusterdata[sent] if sent in self.clusterdata else "0" for sent in text.split()]
         return " ".join(clusterS)
 
-    def export(self, prefix=False, lowercase=True):
+    def export(self, prefix=False, lowercase=True, clusters=False):
 
         def preprocess(t, w):
             if prefix:
@@ -82,7 +79,7 @@ class Data:
             if lowercase:
                 t = t.lower()
             
-            if self.clusters:
+            if clusters:
                 t = self.getClusters(t) 
 
             return t

@@ -4,7 +4,7 @@ from random import shuffle
 from models.spacy.main import ModelRunner as spacy_runner
 from models.pytorch.main import ModelRunner as pytorch_runner
 from models.lm_based.main import ModelRunner as kenlm_runner
-from models.sklearn_based.main_prof import ModelRunner as sklearn_runner
+from models.sklearn_based.main import ModelRunner as sklearn_runner
 from data.reader import Data
 
 from utils.file_system import makedir, rmfile
@@ -14,21 +14,22 @@ import hashlib
 data = {
     # "original": Data("All", "train", ["twitter", "youtube", "news"]),
 
-    "twitter": Data("Twitter", "train", ["twitter"], clusters=True),
-    "youtube": Data("Youtube", "train", ["youtube"], clusters=True),
+    "twitter": Data("Twitter", "train", ["twitter"]),
+    "youtube": Data("Youtube", "train", ["youtube"]),
     "news": Data("News", "train", ["news"]),
 
-    "twitter+twisty": Data("Twitter, Twisty", "train", ["twitter", "twisty1"], clusters=True),
+    "twitter+twisty": Data("Twitter, Twisty", "train", ["twitter", "twisty1"]),
 
-    "twitter+news": Data("Twitter, News", "train", ["twitter", "news"], clusters=True),
-    "twitter+youtube": Data("Twitter, Youtube", "train", ["twitter", "youtube"], clusters=True),
-    "news+youtube": Data("News, Youtube", "train", ["news", "youtube"], clusters=True),
+    "twitter+news": Data("Twitter, News", "train", ["twitter", "news"]),
+    "twitter+youtube": Data("Twitter, Youtube", "train", ["twitter", "youtube"]),
+    "news+youtube": Data("News, Youtube", "train", ["news", "youtube"]),
 
-    "twitter+news+external": Data("Twitter, News, External", "train", ["twitter", "news", "csi", "twisty1"], clusters=True),
-    "twitter+youtube+external": Data("Twitter, Youtube, External", "train", ["twitter", "youtube", "csi", "twisty1"], clusters=True),
-    "news+youtube+csi": Data("News, Youtube, CSI", "train", ["news", "youtube", "csi"], clusters=True),
+    "twitter+news+external": Data("Twitter, News, External", "train", ["twitter", "news", "csi", "twisty1"]),
+    "twitter+youtube+external": Data("Twitter, Youtube, External", "train", ["twitter", "youtube", "csi", "twisty1"]),
+    "news+youtube+csi": Data("News, Youtube, CSI", "train", ["news", "youtube", "csi"]),
 
 }
+
 scenarios = {
     # "Original 90%|Original 10%": data["original"].split(),
     # In domain
@@ -53,16 +54,13 @@ scenarios = {
 models = {
     "Spacy.n": (spacy_runner, "nl_core_news_sm", {"lowercase": False, "prefix": False}),
     "Spacy.y": (spacy_runner, "nl_core_news_sm", {"lowercase": True, "prefix": False}),
-}
-
-models = {
     "Spacy-clusters.n": (spacy_runner, "nl_core_news_sm", {"lowercase": False, "prefix": False, "clusters": True}),
     "Spacy-clusters.y": (spacy_runner, "nl_core_news_sm", {"lowercase": True, "prefix": False, "clusters": True}),
 }
 
 for ngram in range(3, 7):
-     models["KENLM.n." + str(ngram)] = (kenlm_runner, "KENLM", {"lowercase": False, "ngram": ngram})
-     models["KENLM.y." + str(ngram)] = (kenlm_runner, "KENLM", {"lowercase": True, "ngram": ngram})
+    models["KENLM.n." + str(ngram)] = (kenlm_runner, "KENLM", {"lowercase": False, "ngram": ngram})
+    models["KENLM.y." + str(ngram)] = (kenlm_runner, "KENLM", {"lowercase": True, "ngram": ngram})
 for t in ['svm', 'log', 'rf', 'nb', 'knn']:
     models["SKLearn-" + t + ".n"] = (sklearn_runner, t, {"lowercase": False})
     models["SKLearn-" + t + ".y"] = (sklearn_runner, t, {"lowercase": True})
@@ -77,7 +75,7 @@ for m in ["RNN", "CNN", "RCNN", "LSTM", "LSTMAttention", "SelfAttention"]:
 NUM_RUNS = 2
 models = {w + "." + str(i): c for w, c in models.items() for i in range(NUM_RUNS)}
 
-res_file_name = "resultsEva.json"
+res_file_name = "results.json"
 
 results = {}
 try:
