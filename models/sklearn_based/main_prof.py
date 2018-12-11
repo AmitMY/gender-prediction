@@ -6,7 +6,9 @@ import importlib
 import numpy as np 
 import pickle
 
-mod = importlib.import_module("models.sklearn-based.postagger")
+#mod_pos = importlib.import_module("models.sklearn_based")
+#mod_cross = importlib.import_module("models.sklearn_based.cross_genre_profiler")
+#mod_feat = importlib.import_module("models.sklearn_based.feature_pipeline")
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
@@ -16,8 +18,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import BernoulliNB
 
-from cross_genre_profiler import CrossGenrePerofiler
 from data.reader import Data
+from models.sklearn_based.cross_genre_profiler import CrossGenrePerofiler
 
 
 

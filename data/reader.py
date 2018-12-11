@@ -2,7 +2,7 @@ from functools import lru_cache
 import random
 from utils.file_system import listdir
 from re import findall
-
+import json
 
 import os
 import spacy
@@ -22,11 +22,13 @@ def cached_tokenizer(text):
 
 
 class Data:
-    def __init__(self, name, source, specific=None, tokenize=True, clusterF='/home/evanmas2/NMTdata/data/ClinSharedTask/cluster-semantic-vectors/glove_clusters_0.011442950_words.json'):
+    def __init__(self, name, source, specific=None, tokenize=True, clusters=False):
+        self.clusterdata = None
+        self.clusters=clusters
         
-        self.clusterF=clusterF
-        self.clusterdata=self.getClusters()
-        
+        if self.clusters == True:
+            self.clusterdata=self.loadClusters()
+            
         if isinstance(source, str):
             files = listdir(os.path.join(script_dir, source))
             self.categories = {f.split("_")[1].split(".")[0].lower(): self.parse_file(f, tokenize) for f in files}
@@ -47,8 +49,8 @@ class Data:
         random.Random(1234).shuffle(data)  # Same shuffle seed
         return data
 
-    def getClusters(self):
-        with open(self.clusterF) as json_file:
+    def loadClusters(self, clusterF='/home/evanmas2/NMTdata/data/ClinSharedTask/cluster-semantic-vectors/glove_clusters_0.011442950_words.json'):
+        with open(clusterF) as json_file:
             data = json.load(json_file)
         data_inv = {}
         for k, v in data.items():
@@ -62,11 +64,17 @@ class Data:
 
         return data1, data2
 
-    def getclusters(self,t,y=None):
-        clusterS = [self.clusterdata[s] if s in self.clusterdata else "0" for s in t.split()]
+    def getClusters(self, text):
+        ''' For every word it gives back the cluster
+        
+            :param text: the document with sentences to get words from and then the clusters
+            :returns: string of clusters (same as the input)
+        '''
+        clusterS = [self.clusterdata[sent] if sent in self.clusterdata else "0" for sent in text.split()]
         return " ".join(clusterS)
 
-    def export(self, prefix=False, lowercase=False, clusters=True):
+    def export(self, prefix=False, lowercase=True):
+
         def preprocess(t, w):
             if prefix:
                 t = w + ": " + t
@@ -74,10 +82,9 @@ class Data:
             if lowercase:
                 t = t.lower()
             
-            if clusters:
-                t = getclusters(t) 
-                print(t)
-                exit()
+            if self.clusters:
+                t = self.getClusters(t) 
+
             return t
 
         pairs = [(preprocess(c["text"], w), 0 if c["gender"] == "M" else 1)

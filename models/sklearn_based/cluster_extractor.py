@@ -25,10 +25,8 @@ class ClusterExtractor(object):
         self.data=self.getClusters()
 
     def getClusters(self):
-        print("get data")
         with open(self.fileName) as json_file:
             data = json.load(json_file)
-        print("got data")
         data_inv = {}
         for k, v in data.items():
             for i in v:
