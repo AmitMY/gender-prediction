@@ -24,8 +24,8 @@ def cached_tokenizer(text):
 class Data:
     def __init__(self, name, source, specific=None, tokenize=True):
         # Now loading cluster data
-        self.clusterdata=self.loadClusters()
-            
+        self.clusterdata = self.loadClusters()
+
         if isinstance(source, str):
             files = listdir(os.path.join(script_dir, source))
             self.categories = {f.split("_")[1].split(".")[0].lower(): self.parse_file(f, tokenize) for f in files}
@@ -47,7 +47,7 @@ class Data:
         return data
 
     def loadClusters(self, clusterF='../models/sklearn_based/glove_clusters_0.011442950_words.json'):
-        clusterFileName =os.path.realpath(os.path.join(os.path.realpath(__file__), '..', clusterF))
+        clusterFileName = os.path.realpath(os.path.join(os.path.realpath(__file__), '..', clusterF))
         with open(clusterFileName) as json_file:
             data = json.load(json_file)
         data_inv = {}
@@ -79,9 +79,9 @@ class Data:
 
             if lowercase:
                 t = t.lower()
-            
+
             if clusters:
-                t = self.getClusters(t) 
+                t = self.getClusters(t)
 
             return t
 
