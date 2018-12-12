@@ -4,6 +4,7 @@ import time
 import sys
 import shutil
 import argparse
+import random
 
 from models.lm_based.language_model import LanguageModel
 from models.lm_based.lm_classifier import split_by_sent, split_by_class_data, preprocess_text, compare_file, \
@@ -128,6 +129,17 @@ class ModelRunner:
         accuracy = compute_accuracy(predicted_labels, _test_labels)
 
         return [accuracy]
+        
+    def test_one(self, test_sent):
+        ''' Method to test an LM-based model
+
+            :param test: a test sentence 
+            :returns: a result object
+        '''
+        test_sent_preprocessed = preprocess_sent(test_sent)
+        results = compare(self.lm_models, [test_sent_preprocessed])
+
+        return results[0][0]
 
     def cleanup(self):
         ''' Method to cleanup the mess - removes the temp directory
