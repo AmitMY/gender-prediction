@@ -31,18 +31,14 @@ class ModelRunner:
         self.lm_models = {}
         self.model = model
 
-        self.train_sents, self.train_labels = train.export(lowercase=opt["lowercase"])
+        self.train_sents, self.train_labels = train.export()
         self.dev_sents = None
         self.dev_labels = None
         if not dev is None:
-            self.dev_sents, self.dev_labels = dev.export(lowercase=opt["lowercase"])
+            self.dev_sents, self.dev_labels = dev.export()
         self.ngram = 3
         if 'ngram' in opt:
             self.ngram = opt['ngram']
-
-        self.lowercase = False
-        if 'lowercase' in opt:
-            self.lowercase = opt['lowercase']
 
         microtime = int(round(time.time() * 1000))
         self.tmp_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'tmp_' + str(microtime))
@@ -110,7 +106,7 @@ class ModelRunner:
             test_sents = self.dev_sents
             test_labels = self.dev_labels
         else:
-            test_sents, test_labels = test.export(lowercase=self.lowercase)
+            test_sents, test_labels = test.export()
 
         _test_sents, _test_labels = split_by_sent(test_sents, test_labels)
         savetodir(self.tmp_dir, _test_sents, 'test.dat')
@@ -141,12 +137,12 @@ if __name__ == '__main__':
     results = {}
 
     if args.model is not None:
-        inst = ModelRunner(model="LuMi", train=train, dev=dev, opt={'lowercase': False})
+        inst = ModelRunner(model="LuMi", train=train, dev=dev, opt={})
         inst.load(args.model)
         results[args.model] = inst.test()
     else:
         for ngram in [3, 4, 5, 6]:
-            inst = ModelRunner(model="LuMi", train=train, dev=dev, opt={'ngram': ngram, 'lowercase': False})
+            inst = ModelRunner(model="LuMi", train=train, dev=dev, opt={'ngram': ngram})
             print("Created model", "training...")
             results[ngram] = inst.train()
             inst.save("checkpoint_" + str(ngram))  # Make sure this doesn't error

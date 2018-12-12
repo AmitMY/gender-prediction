@@ -56,14 +56,14 @@ models = {
     "Spacy-c": (spacy_runner, "nl_core_news_sm", {"clusters": True}),
 }
 
-# for ngram in range(3, 7):
-#     models["KENLM.n." + str(ngram)] = (kenlm_runner, "KENLM", {"lowercase": False, "ngram": ngram})
+for ngram in range(3, 7):
+    models["KENLM." + str(ngram)] = (kenlm_runner, "KENLM", {"ngram": ngram})
 
 for t in ['svm', 'log', 'rf', 'nb', 'knn']:
     models["SKLearn-" + t] = (sklearn_runner, t, {"clusters": False})
     models["SKLearn-" + t + "-c"] = (sklearn_runner, t, {"clusters": True})
 
-# # Add all of the pytorch models
+# Add all of the pytorch models
 for m in ["RNN", "CNN", "RCNN", "LSTM", "LSTMAttention", "SelfAttention"]:
     models[m + ""] = (pytorch_runner, m, {})
     models[m + "+"] = (pytorch_runner, m, {"pretrained": "fasttext"})
