@@ -11,8 +11,10 @@ def load_dataset(train, dev, opt={}):
     TEXT = data.Field(sequential=True, tokenize=tokenize, lower=True, include_lengths=True, batch_first=True)
     LABEL = data.LabelField()
 
-    train_data = GxG(list(zip(*train.export(lowercase=opt["lowercase"], prefix=opt["prefix"]))), TEXT, LABEL)
-    dev_data = GxG(list(zip(*dev.export(lowercase=opt["lowercase"], prefix=opt["prefix"]))), TEXT, LABEL)
+    is_clusters = "clusters" in opt and opt["clusters"]
+
+    train_data = GxG(list(zip(*train.export(clusters=is_clusters)[:2])), TEXT, LABEL)
+    dev_data = GxG(list(zip(*dev.export(clusters=is_clusters)[:2])), TEXT, LABEL)
 
     pretrained = opt["pretrained"] if "pretrained" in opt else None
 
@@ -39,6 +41,6 @@ def load_dataset(train, dev, opt={}):
 
 
 if __name__ == "__main__":
-    train, dev = Data("All", "train", tokenize=False).split()
+    train, dev = Data("All", "test", tokenize=False).split()
 
     load_dataset(train, dev)

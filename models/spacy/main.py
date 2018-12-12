@@ -31,14 +31,12 @@ class ModelRunner:
     def save(self, path):
         self.nlp.to_disk(path)
 
-    def cat(self, test):
-        (texts, _) = test.export()
-
+    def eval_all(self, texts):
         docs = (self.nlp(text) for text in texts)
+        return [doc.cats["g"] for doc in self.nlp.get_pipe("textcat").pipe(docs)]
 
-        for doc in self.nlp.get_pipe("textcat").pipe(docs):
-            print(doc.cats["g"])
-            print(doc)
+    def eval_one(self, text):
+        return next(self.nlp.get_pipe("textcat").pipe([self.nlp(text)])).cats["g"]
 
     def train(self):
         # add the text classifier to the pipeline if it doesn't exist
@@ -55,8 +53,8 @@ class ModelRunner:
 
         # load the dataset
         print("Exporting data to correct format")
-        (train_texts, train_cats) = self.train_set.export(lowercase=self.opt["lowercase"], prefix=self.opt["prefix"], clusters=self.opt["clusters"])
-        (dev_texts, dev_cats) = self.dev_set.export(lowercase=self.opt["lowercase"], prefix=self.opt["prefix"], clusters= self.opt["clusters"])
+        train_texts, train_cats, _ = self.train_set.export(clusters=self.opt["clusters"])
+        dev_texts, dev_cats, _ = self.dev_set.export(clusters=self.opt["clusters"])
 
         train_cats = [{"g": c} for c in train_cats]
         dev_cats = [{"g": c} for c in dev_cats]
@@ -131,5 +129,6 @@ if __name__ == '__main__':
     print("\n")
 
     inst = ModelRunner(model="nl_core_news_sm", train=train, dev=dev)
-    inst.load("../checkpoints/Spacy/")
-    inst.cat(test)
+    inst.load("../checkpoints/0a5cb18d32b5c2e32a48c4a8e9182dd4/Spacy.1/")
+    sen = "weird test sentence"
+    print(sen, inst.eval_one(sen))
