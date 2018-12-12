@@ -31,11 +31,11 @@ class ModelRunner:
         self.lm_models = {}
         self.model = model
 
-        self.train_sents, self.train_labels = train.export()
+        self.train_sents, self.train_labels, _ = train.export()
         self.dev_sents = None
         self.dev_labels = None
         if not dev is None:
-            self.dev_sents, self.dev_labels = dev.export()
+            self.dev_sents, self.dev_labels, _ = dev.export()
         self.ngram = 3
         if 'ngram' in opt:
             self.ngram = opt['ngram']
@@ -65,13 +65,13 @@ class ModelRunner:
 
             :param filename: the name of the file containing the archive to unpack
     	'''
-        shutil.unpack_archive(filename, self.tmp_dir)
+        shutil.unpack_archive(filename + ".zip", self.tmp_dir)
         class_label = 0
-        lm_file = os.path.join(self.tmp_dir, str(class_label)+ ".dat.blm")
+        lm_file = os.path.join(self.tmp_dir, str(class_label) + ".dat.blm")
         while os.path.exists(lm_file):
             self.lm_models[class_label] = lm_file
             class_label += 1
-            lm_file = os.path.join(self.tmp_dir, str(class_label)+ ".dat.blm")
+            lm_file = os.path.join(self.tmp_dir, str(class_label) + ".dat.blm")
 
     def train(self):
         ''' Method to train an LM-based model
@@ -106,7 +106,7 @@ class ModelRunner:
             test_sents = self.dev_sents
             test_labels = self.dev_labels
         else:
-            test_sents, test_labels = test.export()
+            test_sents, test_labels, _ = test.export()
 
         _test_sents, _test_labels = split_by_sent(test_sents, test_labels)
         savetodir(self.tmp_dir, _test_sents, 'test.dat')
@@ -122,6 +122,7 @@ class ModelRunner:
         '''
         rmdir(self.tmp_dir)
 
+
 # To test if your model runs at all
 if __name__ == '__main__':
     ''' read arguments from the command line and train or test a language model based classifier.
@@ -133,7 +134,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     train, dev = Data("Twitter", "train", ['twitter'], tokenize=True).split()
-    #dev = Data("N", "train", ['twitter'], tokenize=True)
+    # dev = Data("N", "train", ['twitter'], tokenize=True)
     results = {}
 
     if args.model is not None:
@@ -146,6 +147,6 @@ if __name__ == '__main__':
             print("Created model", "training...")
             results[ngram] = inst.train()
             inst.save("checkpoint_" + str(ngram))  # Make sure this doesn't error
-            #inst.load("checkpoint")  # Make sure this doesn't error
+            # inst.load("checkpoint")  # Make sure this doesn't error
 
     [print(' '.join([str(i), str(results[i])])) for i in results]

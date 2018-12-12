@@ -21,8 +21,10 @@ from models.sklearn_based.cross_genre_profiler import CrossGenrePerofiler
 
 class ModelRunner:
     def __init__(self, model, train, dev, opt={}):
-        self.train_sents, self.train_labels = train.export(clusters=opt["clusters"])
-        self.dev_sents, self.dev_labels = dev.export(clusters=opt["clusters"])
+        is_clusters = "clusters" in opt and opt["clusters"]
+
+        self.train_sents, self.train_labels, _ = train.export(clusters=is_clusters)
+        self.dev_sents, self.dev_labels, _ = dev.export(clusters=is_clusters)
         if "fns_gender" in opt and opt["fns_gender"] == True:
             fns_gender = ['char', 'clusters',
                           'mancount']  # ,'diminutives','mancount','womancount']#'unigram', 'bigram', 'char','clusters']#,'clusters'] #'diminutives','mancount','womancount']#,'artcount'] #,'artcount','punctuation','clusters']
@@ -66,6 +68,12 @@ class ModelRunner:
 
     def save(self, path):
         pickle.dump((self.modelname, self.model), open(path, 'wb'))
+
+    def eval_one(self, text):
+        return self.model.predict(self.vectorizer.transform([text]))[0]
+
+    def eval_all(self, texts):
+        return self.model.predict(self.vectorizer.transform(texts))
 
     def test(self, test_sents=None, test_labels=None):
         _test_sents = self.dev_sents
@@ -115,15 +123,20 @@ if __name__ == "__main__":
     # train = Data("YouTube, Twitter", "train",["youtube","twitter"], tokenize=False)
     # dev = Data("News", "train",["news"], tokenize=False)
 
-    if args.model is not None:
-        runner = ModelRunner('LoadedModel', train, dev, opt={"pos": False, "fns_gender": True})
-        runner.load(args.model)
-        a = runner.test()
-        print(a)
-    else:
-        for modelName in ['log-feat', 'svm']:  # ,'log','nb','knn', 'rf']:
-            runner = ModelRunner(modelName, train, dev, opt={"pos": False, "fns_gender": True})
-            print(runner.train())
-            runner.save()
-            # for d in enumerate(runner.train()):
-            #    print(d)
+    inst = ModelRunner("svm", train=train, dev=dev)
+    inst.train()
+    sen = "weird test sentence"
+    print(sen, inst.eval_one(sen))
+
+    # if args.model is not None:
+    #     runner = ModelRunner('LoadedModel', train, dev, opt={"pos": False, "fns_gender": True})
+    #     runner.load(args.model)
+    #     a = runner.test()
+    #     print(a)
+    # else:
+    #     for modelName in ['log-feat', 'svm']:  # ,'log','nb','knn', 'rf']:
+    #         runner = ModelRunner(modelName, train, dev, opt={"pos": False, "fns_gender": True})
+    #         print(runner.train())
+    #         runner.save()
+    #         # for d in enumerate(runner.train()):
+    #         #    print(d)

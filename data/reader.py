@@ -39,7 +39,7 @@ class Data:
     def parse_file(self, f, tokenize=False):
         raw = open(f, "r", encoding="utf-8").read()
 
-        matches = findall('<doc id="(\d*?)" genre="(.*?)" gender="(M|F)">\n([\s\S]*?)\n<\/doc>', raw)
+        matches = findall('<doc id="(\d*?)" genre="(.*?)" gender="(M|F|\?)">\n([\s\S]*?)\n<\/doc>', raw)
 
         data = list(map(lambda m: {"id": m[0], "genre": m[1], "gender": m[2],
                                    "text": m[3] if not tokenize else cached_tokenizer(m[3])}, matches))
@@ -85,14 +85,19 @@ class Data:
 
             return t
 
-        pairs = [(preprocess(c["text"], w), 0 if c["gender"] == "M" else 1)
+        pairs = [(preprocess(c["text"], w), None if c["gender"] == "?" else (0 if c["gender"] == "M" else 1), c["id"])
                  for w, co in self.categories.items() for c in co]
 
         return list(zip(*pairs))  # List of texts, list of tags
 
 
 if __name__ == "__main__":
-    data = Data("All", "train", tokenize=True)
+    data = Data("All Train", "train", tokenize=False)
     train, dev = data.split()
-    texts, categories = train.export()
-    print("\n", texts[-1], "|", categories[-1])
+    test = Data("All Test", "test", tokenize=False)
+
+    texts, categories, ids = train.export()
+    print("\n", texts[-1], "|", categories[-1], "|", ids[-1])
+
+    texts, categories, ids = test.export()
+    print("\n", texts[-1], "|", categories[-1], "|", ids[-1])
