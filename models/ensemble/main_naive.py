@@ -1,15 +1,11 @@
 #!/bin/python
-from utils.file_system import savetodir, makedir
-from data.reader import Data
-import os
-import time
 import sys
 import argparse
-import pickle
 import numpy as np
 
 from sklearn import svm
 sys.path.append("../")
+from data.reader import Data
 #from models.loader import Loader as ModelLoader
 
 
@@ -17,7 +13,7 @@ class ModelRunner:
     ''' A main model runner for the Ensemble
     '''
 
-    def __init__(self, model, model_list, test, opt={}):
+    def __init__(self, model, model_list, test_data):
         ''' Init method for the model runner
 
             :param model: the name of the model
@@ -28,11 +24,12 @@ class ModelRunner:
         self.modelname = model
         self.ensemble_model = svm.NuSVC(gamma='scale')
 
-        self.test_sents, self.test_labels, self.test_ids = test.export(lowercase=False)
+        self.test_sents, self.test_labels, self.test_ids = test_data.export(
+            lowercase=False)
         # load all models that we want to ensemble
         self.pretrained_models = model_list
 
-    def evaluate(self, test=None):
+    def evaluate(self, test_data=None):
         ''' Method to test the ensemble model
 
             :param test: the test data (an instance of Data)
@@ -48,7 +45,7 @@ class ModelRunner:
             '''
             eq = [1 if predicted[i] == expected[i]
                   else 0 for i in range(len(predicted))]
-            
+
             return np.mean(eq)
 
         def predict(sent, weights=None):
@@ -68,14 +65,15 @@ class ModelRunner:
 
             prediction = 0.0 if np.average(vector) < 0.5 else 1.0
             return prediction
-        
+
         # Actual testing/evaluation
         accuracy = 0.0
         test_sents = self.test_sents
         test_labels = self.test_labels
         test_ids = self.test_ids
-        if test is not None:
-            test_sents, test_labels, test_ids = test.export(lowercase=False)
+        if test_data is not None:
+            test_sents, test_labels, test_ids = test_data.export(
+                lowercase=False)
 
         predicted_labels = [predict(test_sent) for test_sent in test_sents]
 
@@ -101,7 +99,5 @@ if __name__ == '__main__':
 
     test = Data("Test", "test", args.test_data, tokenize=True)
 
-    results = {}
-
-    ens = ModelRunner(model="Ensemble", models=args.models, test=test)
+    ens = ModelRunner(model="Ensemble", model_list=args.models, test_data=test)
     _, results = ens.evaluate()
