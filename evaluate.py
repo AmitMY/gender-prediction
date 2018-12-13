@@ -9,33 +9,35 @@ from models.ensemble.main_naive import ModelRunner as ensemble
 
 test_data = {
     "twitter": Data("Twitter", "test", ["twitter"]),
-    #    "youtube": Data("Youtube", "test", ["youtube"]),
-    #    "news": Data("News", "test", ["news"]),
+    "youtube": Data("Youtube", "test", ["youtube"]),
+    "news": Data("News", "test", ["news"]),
 }
 
 TEAM = "ABI"
 
 test_runs = {
     TEAM + "_IN_twitter_1": ("Twitter 90%|Twitter 10%", test_data["twitter"]),
-    #    TEAM + "_IN_youtube_1": ("YouTube 90%|YouTube 10%", test_data["youtube"]),
-    #    TEAM + "_IN_news_1": ("News 90%|News 10%", test_data["news"]),
-    #    TEAM + "_CROSS_twitter_1": ("YouTube, News|Twitter", test_data["twitter"]),
-    #    TEAM + "_CROSS_youtube_1": ("Twitter, News|YouTube", test_data["youtube"]),
-    #    TEAM + "_CROSS_news_1": ("Twitter, YouTube|News", test_data["news"]),
+    TEAM + "_IN_youtube_1": ("YouTube 90%|YouTube 10%", test_data["youtube"]),
+    TEAM + "_IN_news_1": ("News 90%|News 10%", test_data["news"]),
+    TEAM + "_CROSS_twitter_1": ("YouTube, News|Twitter", test_data["twitter"]),
+    TEAM + "_CROSS_youtube_1": ("Twitter, News|YouTube", test_data["youtube"]),
+    TEAM + "_CROSS_news_1": ("Twitter, YouTube|News", test_data["news"]),
 }
 
 results_dir = "models/results/"
 makedir(results_dir)
 
+
 def male_female(score):
-        ''' Return the label based on the score
-            0 = M
-            1 = F
-            
-            :param score: the score -a number int or float
-            :returns: label
-        '''
-        return 'M' if score < 0.5 else 'F'
+    ''' Return the label based on the score
+        0 = M
+        1 = F
+
+        :param score: the score -a number int or float
+        :returns: label
+    '''
+    return 'M' if score < 0.5 else 'F'
+
 
 for test_run, (scenario_name, test_data) in test_runs.items():
     hashed = hashlib.md5(scenario_name.encode('utf-8')).hexdigest()
@@ -101,7 +103,6 @@ for test_run, (scenario_name, test_data) in test_runs.items():
                     f.write("\n".join(out_prob))
                     f.close()
 
-                    
                     print("Evaluated", t, correct / len(export))
 
         print("\n")
