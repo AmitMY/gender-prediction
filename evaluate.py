@@ -125,23 +125,23 @@ for test_run, (scenario_name, test_data) in test_runs.items():
 
     print("Gender Ensemble", test_run, gender_eval(new_res, dev_data))
     
-#    print("Ensembling...")
-#
-#    ens = ensemble('Ensemble_Naive', model_list=model_list, test_data=test_data)
-#    _, results = ens.evaluate()
-#
-#    # Now let's also compute the dev accuracy of the ensembel
-#    dev_accuracy, _ = ens.evaluate(dev_data)
-#    print(" ".join(['Ensembele Naive', scenario_name, 'dev', str(dev_accuracy[0])]))
-#
-#    model_res_dir = os.path.join(results_dir_scenario, 'ensemble')
-#    makedir(model_res_dir)
-#
-#    model_res_fname = os.path.join(model_res_dir, test_run)
-#    with open(model_res_fname, "w") as f:
-#        f.write(
-#            "\n".join([str(id) + " " + male_female(results[id]) for id in results]))
-#
-#    with open(model_res_fname + ".prob", "w") as f:
-#        f.write("\n".join([str(id) + " " + str(results[id])
-#                           for id in results]))
+    # print("Ensembling...")
+    #
+    # ens = ensemble('Ensemble_Naive', model_list=model_list, test_data=test_data)
+    # _, results = ens.evaluate()
+    #
+    # # Now let's also compute the dev accuracy of the ensembel
+    # dev_accuracy, _ = ens.evaluate(dev_data)
+    # print(" ".join(['Ensembele Naive', scenario_name, 'dev', str(dev_accuracy[0])]))
+    #
+    # model_res_dir = os.path.join(results_dir_scenario, 'ensemble')
+    # makedir(model_res_dir)
+    #
+    # model_res_fname = os.path.join(model_res_dir, test_run)
+    # with open(model_res_fname, "w") as f:
+    #    f.write(
+    #       "\n".join([str(id) + " " + male_female(results[id]) for id in results]))
+    #
+    # with open(model_res_fname + ".prob", "w") as f:
+    #    f.write("\n".join([str(id) + " " + str(results[id])
+    #                       for id in results]))
