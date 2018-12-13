@@ -70,6 +70,7 @@ def compare(lm_models, sents):
 
 def compare_file(lm_models, dev_set_file):
     ''' For each sentence in dev_set_file, computes the score according to each language model and compares them.
+        
         :param lm_models: a dictionary of language models
         :param dev_set_file: a file with sentences
         :returns: a dictionary of scores with the sentence index as key and value: [predicted class, score]
@@ -119,6 +120,16 @@ def preprocess_text(text_file):
     subprocess.call([os.path.join(current_path, 'preprocess.sh'), text_file, preprocessed_file_name])
     return preprocessed_file_name
 
+def preprocess_sent(sent):
+    ''' Takes a file and preprocesses the file.
+        Currently the preprocessor will tokenize and lower case the data.
+
+        :param sent: The sentence to process
+        :returns: The preprocessed sentece
+    '''
+    current_path = os.path.dirname(os.path.abspath(__file__))
+    preprocessed_sent = subprocess.call([os.path.join(current_path, 'preprocess.sh'), sent])
+    return preprocessed_sent
 
 def compute_accuracy(predicted, expected):
     ''' Computes the accuracy of the prediction

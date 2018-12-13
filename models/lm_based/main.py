@@ -4,6 +4,7 @@ import time
 import sys
 import shutil
 import argparse
+import random
 
 from models.lm_based.language_model import LanguageModel
 from models.lm_based.lm_classifier import split_by_sent, split_by_class_data, preprocess_text, compare_file, \
@@ -20,22 +21,27 @@ class ModelRunner:
     ''' A main model runner for the LM-based models
     '''
 
-    def __init__(self, model, train, dev, opt={}):
+    def __init__(self, model, train=None, dev=None, opt={}):
         ''' Init method for the model runner
 
             :param model: the name of the model
-            :param train: the train data (an instance of Data)
-            :param dev: the dev data (an instance of Data)
+            :param train: the train data (an instance of Data, or None - in case of loading a model)
+            :param dev: the dev data (an instance of Data,  or None - in case of loading a model)
             :param opt: a dictionary with all options
         '''
         self.lm_models = {}
         self.model = model
 
-        self.train_sents, self.train_labels, _ = train.export()
+        self.train_sents = None
+        self.train_labels = None
+        if not train is None:        
+            self.train_sents, self.train_labels, _ = train.export()
+    
         self.dev_sents = None
         self.dev_labels = None
         if not dev is None:
             self.dev_sents, self.dev_labels, _ = dev.export()
+
         self.ngram = 3
         if 'ngram' in opt:
             self.ngram = opt['ngram']
@@ -103,8 +109,11 @@ class ModelRunner:
         '''
         accuracy = 0.0
         if test is None:
-            test_sents = self.dev_sents
-            test_labels = self.dev_labels
+            if self.dev_sents is not None and self.dev_labels is not None:
+                test_sents = self.dev_sents
+                test_labels = self.dev_labels
+            else:
+                raise ValueError('No test set provided!')
         else:
             test_sents, test_labels, _ = test.export()
 
@@ -116,7 +125,32 @@ class ModelRunner:
         accuracy = compute_accuracy(predicted_labels, _test_labels)
 
         return [accuracy]
+        
+    def eval_one(self, test_sent):
+        ''' Method to evaluate a single sentence with an LM-based model
 
+            :param test: a test sentence 
+            :returns: a result object
+        '''
+        test_sent_preprocessed = preprocess_sent(test_sent)
+        results = compare(self.lm_models, [test_sent_preprocessed])
+
+        return results[0][0]
+
+    def eval_all(self, test_sents):
+        ''' Method to test an LM-based model
+
+            :param test: a test sentence 
+            :returns: a result object
+        '''
+        test_sents_preprocessed = [preprocess_sent(test_sent) for test_sent in test_sents]
+        
+        results = compare(self.lm_models, test_sent_preprocessed)
+        
+        predicted_labels = [results[i][0] for i in results]
+        return predicted_labels
+        
+        
     def cleanup(self):
         ''' Method to cleanup the mess - removes the temp directory
         '''
