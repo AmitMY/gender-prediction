@@ -85,7 +85,7 @@ class Data:
 
             return t
 
-        pairs = [(preprocess(c["text"], w), None if c["gender"] == "?" else (0 if c["gender"] == "M" else 1), c["id"])
+        pairs = [(preprocess(c["text"], w), None if c["gender"] == "?" else (0 if c["gender"] == "M" else 1), int(c["id"]))
                  for w, co in self.categories.items() for c in co]
 
         return list(zip(*pairs))  # List of texts, list of tags

@@ -39,6 +39,31 @@ def male_female(score):
     return 'M' if score < 0.5 else 'F'
 
 
+def parse_results_file(results_f):
+    results = open(results_f).read().splitlines()
+    return {int(id): g for (id, g) in [r.split() for r in results]}
+
+
+def gender_eval(results, data):
+    total_male = total_female = 0
+    correct_male = correct_female = 0
+    for text, gender, id in zip(*data.export()):
+        if results[id] == "M":
+            total_male += 1
+            if gender == 0:
+                correct_male += 1
+        elif results[id] == "F":
+            total_female += 1
+            if gender == 1:
+                correct_female += 1
+
+    return {
+        "all": (correct_male + correct_female) / (total_male + total_female),
+        "male": correct_male / (total_male + 0.0000001),
+        "female": correct_female / (total_female + 0.0000001),
+    }
+
+
 for test_run, (scenario_name, test_data) in test_runs.items():
     hashed = hashlib.md5(scenario_name.encode('utf-8')).hexdigest()
     checkpoints_dir_scenario = os.path.join(checkpoints_dir, hashed)

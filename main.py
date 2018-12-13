@@ -55,8 +55,8 @@ models = {
 #    "Spacy-c": (spacy_runner, "nl_core_news_sm", {"clusters": True}),
 }
 
-for ngram in range(3, 7):
-    models["KENLM." + str(ngram)] = (kenlm_runner, "KENLM", {"ngram": ngram})
+# for ngram in range(3, 7):
+#     models["KENLM." + str(ngram)] = (kenlm_runner, "KENLM", {"ngram": ngram})
 
 #for t in ['svm', 'log']:  # , 'rf', 'nb', 'knn']:
 #    models["SKLearn-" + t] = (sklearn_runner, t, {"clusters": False})
