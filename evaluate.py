@@ -101,7 +101,6 @@ for test_run, (scenario_name, test_data) in test_runs.items():
                     f.write("\n".join(out_prob))
                     f.close()
 
-                    
                     print("Evaluated", t, correct / len(export))
 
         print("\n")
