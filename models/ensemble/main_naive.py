@@ -60,7 +60,6 @@ class ModelRunner:
                 # convert to a -1,1 scale
                 vector = np.multiply(np.subtract(vector, 0.5), 2)
                 vector = np.multiply(vector, weights)  # add weights
-                # convert back to 0, 1 scale
                 threshold = 0.0
                 
             prediction = 0.0 if np.average(vector) < threshold else 1.0

@@ -57,7 +57,11 @@ def compare(lm_models, sents):
         model.load(lm_models[class_text])
 
         for i in range(len(sents)):
-            score = model.score(sents[i].rstrip().lstrip())
+            sent_split = str(sents[i]).rstrip().lstrip('b\'').split('\n')
+            score = 0.0
+            for s in sent_split:
+                score += model.score(s.rstrip().lstrip())
+            score /= len(sent_split)
             if i not in scores:
                 scores[i] = [class_text, score]
             else:  # if it has already been filled then - we compare the scores
@@ -79,7 +83,6 @@ def compare_file(lm_models, dev_set_file):
     count = 0
     with open(dev_set_file, 'r') as inFile:
         sents = inFile.readlines()
-        print(str(len(sents)))
         for class_text in lm_models:
             model = LanguageModel()
             model.load(lm_models[class_text])
@@ -128,7 +131,9 @@ def preprocess_sent(sent):
         :returns: The preprocessed sentece
     '''
     current_path = os.path.dirname(os.path.abspath(__file__))
-    preprocessed_sent = subprocess.call([os.path.join(current_path, 'preprocess.sh'), sent])
+    command = [os.path.join(current_path, 'preprocess_one_line.sh'), sent]
+    proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    preprocessed_sent, _err = proc.communicate()
     return preprocessed_sent
 
 def compute_accuracy(predicted, expected):
