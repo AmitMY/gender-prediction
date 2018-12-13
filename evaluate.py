@@ -54,7 +54,7 @@ for test_run, (scenario_name, test_data) in test_runs.items():
         if all([os.path.isfile(os.path.join(results_dir_scenario, t, model_name)) for t in t_data.keys()]):
             print(test_run, "Skipping", model_name)
             print("\n")
-            #continue
+            continue
 
         print(test_run, "Loading", model_name)
 
