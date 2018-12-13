@@ -27,6 +27,16 @@ test_runs = {
 results_dir = "models/results/"
 makedir(results_dir)
 
+def male_female(score):
+        ''' Return the label based on the score
+            0 = M
+            1 = F
+            
+            :param score: the score -a number int or float
+            :returns: label
+        '''
+        return 'M' if score < 0.5 else 'F'
+
 for test_run, (scenario_name, test_data) in test_runs.items():
     hashed = hashlib.md5(scenario_name.encode('utf-8')).hexdigest()
     checkpoints_dir_scenario = os.path.join(checkpoints_dir, hashed)
@@ -42,7 +52,7 @@ for test_run, (scenario_name, test_data) in test_runs.items():
         if all([os.path.isfile(os.path.join(results_dir_scenario, t, model_name)) for t in t_data.keys()]):
             print(test_run, "Skipping", model_name)
             print("\n")
-            # continue
+            continue
 
         print(test_run, "Loading", model_name)
 
@@ -53,8 +63,6 @@ for test_run, (scenario_name, test_data) in test_runs.items():
             print("No eval_one/eval_all method!")
         else:
             inst.load(os.path.join(checkpoints_dir_scenario, model_name))
-            print('appending inst')
-            print(inst)
             model_list.append(inst)
 
             for t, data in {"train": train_data, "dev": dev_data, "test": test_data}.items():
@@ -73,16 +81,14 @@ for test_run, (scenario_name, test_data) in test_runs.items():
                         texts, labels, ids = list(zip(*export))
                         all_scores = inst.eval_all(texts)
                         for id, label, score in zip(ids, labels, all_scores):
-                            out.append(
-                                id + " " + ("M" if round(score) == 0 else "F"))
+                            out.append(id + " " + male_female(score))
                             out_prob.append(id + " " + str(score))
                             if label is not None and round(score) == label:
                                 correct += 1
                     else:
                         for text, label, id in export:
                             score = inst.eval_one(text)
-                            out.append(
-                                id + " " + ("M" if round(score) == 0 else "F"))
+                            out.append(id + " " + male_female(score))
                             out_prob.append(id + " " + str(score))
                             if label is not None and round(score) == label:
                                 correct += 1
@@ -95,19 +101,12 @@ for test_run, (scenario_name, test_data) in test_runs.items():
                     f.write("\n".join(out_prob))
                     f.close()
 
+                    
                     print("Evaluated", t, correct / len(export))
 
         print("\n")
 
     print("Ensembling...")
-
-    def male_female(score):
-        ''' Return the label based on the score
-
-            :param score: the score -a number int or float
-            :returns: label
-        '''
-        return 'M' if score > 0.5 else 'F'
 
     ens = ensemble('Ensemble_Naive', model_list=model_list,
                    test=test_data, opt=options)
