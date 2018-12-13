@@ -114,7 +114,7 @@ for test_run, (scenario_name, test_data) in test_runs.items():
 
     # Now let's also compute the dev accuracy of the ensembel
     dev_accuracy, _ = ens.evaluate(dev_data)
-    print(" ".join(['Ensembele Naive', scenario_name, str(dev_accuracy[0])]))
+    print(" ".join(['Ensembele Naive', scenario_name, 'dev', str(dev_accuracy[0])]))
 
     model_res_dir = os.path.join(results_dir_scenario, 'ensemble')
     makedir(model_res_dir)
