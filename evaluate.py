@@ -107,6 +107,25 @@ for test_run, (scenario_name, test_data) in test_runs.items():
 
         print("\n")
 
+
+    print("Evaluating...")
+    gender_based_ensemble = []
+    for model_name, _ in models.items():
+        f_name = os.path.join(results_dir_scenario, "dev", model_name)
+        res = gender_eval(parse_results_file(f_name), dev_data)
+        gender_based_ensemble.append(("M", f_name, res["male"]))
+        gender_based_ensemble.append(("F", f_name, res["female"]))
+        print(model_name, res)
+
+    new_res = {}
+    for g, f, _ in sorted(gender_based_ensemble, key=lambda k: k[2]):
+        results = parse_results_file(f)
+        for res_id, res_g in results.items():
+            if res_g == g:
+                new_res[res_id] = res_g
+
+    print("Gender Ensemble", test_run, gender_eval(new_res, dev_data))
+    
     print("Ensembling...")
 
     ens = ensemble('Ensemble_Naive', model_list=model_list, test_data=test_data)
