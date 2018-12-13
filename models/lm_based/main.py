@@ -126,8 +126,8 @@ class ModelRunner:
 
         return [accuracy]
         
-    def test_one(self, test_sent):
-        ''' Method to test an LM-based model
+    def eval_one(self, test_sent):
+        ''' Method to evaluate a single sentence with an LM-based model
 
             :param test: a test sentence 
             :returns: a result object
@@ -137,6 +137,20 @@ class ModelRunner:
 
         return results[0][0]
 
+    def eval_all(self, test_sents):
+        ''' Method to test an LM-based model
+
+            :param test: a test sentence 
+            :returns: a result object
+        '''
+        test_sents_preprocessed = [preprocess_sent(test_sent) for test_sent in test_sents]
+        
+        results = compare(self.lm_models, test_sent_preprocessed)
+        
+        predicted_labels = [results[i][0] for i in results]
+        return predicted_labels
+        
+        
     def cleanup(self):
         ''' Method to cleanup the mess - removes the temp directory
         '''

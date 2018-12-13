@@ -124,7 +124,7 @@ class ModelRunner:
 
             :param sent: the sentence to test with
         '''
-        return [model.test(sent) for model in self.pretrained_models]
+        return [model.eval_one(sent) for model in self.pretrained_models]
 
 
 # To test if your model runs at all
