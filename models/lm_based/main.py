@@ -8,7 +8,7 @@ import random
 
 from models.lm_based.language_model import LanguageModel
 from models.lm_based.lm_classifier import split_by_sent, split_by_class_data, preprocess_text, compare_file, \
-    compute_accuracy
+    compute_accuracy, compare, preprocess_sent
 
 sys.path.append("../")
 
@@ -145,7 +145,7 @@ class ModelRunner:
         '''
         test_sents_preprocessed = [preprocess_sent(test_sent) for test_sent in test_sents]
         
-        results = compare(self.lm_models, test_sent_preprocessed)
+        results = compare(self.lm_models, test_sents_preprocessed)
         
         predicted_labels = [results[i][0] for i in results]
         return predicted_labels
