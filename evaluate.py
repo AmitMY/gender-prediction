@@ -39,6 +39,31 @@ def male_female(score):
     return 'M' if score < 0.5 else 'F'
 
 
+def parse_results_file(results_f):
+    results = open(results_f).read().splitlines()
+    return {int(id): g for (id, g) in [r.split() for r in results]}
+
+
+def gender_eval(results, data):
+    total_male = total_female = 0
+    correct_male = correct_female = 0
+    for text, gender, id in zip(*data.export()):
+        if results[id] == "M":
+            total_male += 1
+            if gender == 0:
+                correct_male += 1
+        elif results[id] == "F":
+            total_female += 1
+            if gender == 1:
+                correct_female += 1
+
+    return {
+        "all": (correct_male + correct_female) / (total_male + total_female),
+        "male": correct_male / (total_male + 0.0000001),
+        "female": correct_female / (total_female + 0.0000001),
+    }
+
+
 for test_run, (scenario_name, test_data) in test_runs.items():
     hashed = hashlib.md5(scenario_name.encode('utf-8')).hexdigest()
     checkpoints_dir_scenario = os.path.join(checkpoints_dir, hashed)
@@ -107,24 +132,41 @@ for test_run, (scenario_name, test_data) in test_runs.items():
 
         print("\n")
 
-    print("Ensembling...")
+    print("Evaluating...")
+    gender_based_ensemble = []
+    for model_name, _ in models.items():
+        f_name = os.path.join(results_dir_scenario, "dev", model_name)
+        res = gender_eval(parse_results_file(f_name), dev_data)
+        gender_based_ensemble.append(("M", f_name, res["male"]))
+        gender_based_ensemble.append(("F", f_name, res["female"]))
+        print(model_name, res)
 
-    ens = ensemble('Ensemble_Naive', model_list=model_list,
-                   test=test_data, opt=options)
-    _, results = ens.evaluate()
+    new_res = {}
+    for g, f, _ in sorted(gender_based_ensemble, key=lambda k: k[2]):
+        results = parse_results_file(f)
+        for res_id, res_g in results.items():
+            if res_g == g:
+                new_res[res_id] = res_g
 
-    # Now let's also compute the dev accuracy of the ensembel
-    dev_accuracy, _ = ens.evaluate(dev_data)
-    print(" ".join(['Ensembele Naive', scenario_name, 'dev', str(dev_accuracy[0])]))
+    print("Gender Ensemble", test_run, gender_eval(new_res, dev_data))
 
-    model_res_dir = os.path.join(results_dir_scenario, 'ensemble')
-    makedir(model_res_dir)
-
-    model_res_fname = os.path.join(model_res_dir, test_run)
-    with open(model_res_fname, "w") as f:
-        f.write(
-            "\n".join([str(id) + " " + male_female(results[id]) for id in results]))
-
-    with open(model_res_fname + ".prob", "w") as f:
-        f.write("\n".join([str(id) + " " + str(results[id])
-                           for id in results]))
+    # print("Ensembling...")
+    #
+    # ens = ensemble('Ensemble_Naive', model_list=model_list, test_data=test_data)
+    # _, results = ens.evaluate()
+    #
+    # # Now let's also compute the dev accuracy of the ensemble
+    # dev_accuracy, _ = ens.evaluate(dev_data)
+    # print(" ".join(['Ensembele Naive', scenario_name, 'dev', str(dev_accuracy[0])]))
+    #
+    # model_res_dir = os.path.join(results_dir_scenario, 'ensemble')
+    # makedir(model_res_dir)
+    #
+    # model_res_fname = os.path.join(model_res_dir, test_run)
+    # with open(model_res_fname, "w") as f:
+    #     f.write(
+    #         "\n".join([str(id) + " " + male_female(results[id]) for id in results]))
+    #
+    # with open(model_res_fname + ".prob", "w") as f:
+    #     f.write("\n".join([str(id) + " " + str(results[id])
+    #                        for id in results]))
