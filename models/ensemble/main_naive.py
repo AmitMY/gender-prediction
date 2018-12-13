@@ -55,14 +55,14 @@ class ModelRunner:
                 :returns: the prediction 0/1 or M/F
             '''
             vector = [model.eval_one(sent) for model in self.pretrained_models]
+            threshold = 0.5
             if weights is not None:
                 # convert to a -1,1 scale
                 vector = np.multiply(np.subtract(vector, 0.5), 2)
                 vector = np.multiply(vector, weights)  # add weights
-                # convert back to 0, 1 scale
-                vector = np.multiply(np.add(vector, 0.5), 0.5)
-
-            prediction = 0.0 if np.average(vector) < 0.5 else 1.0
+                threshold = 0.0
+                
+            prediction = 0.0 if np.average(vector) < threshold else 1.0
             return prediction
 
         # Actual testing/evaluation

@@ -25,7 +25,7 @@ class LanguageModel():
 
             :param model_file: the file containing the KenLM model
         '''
-        print('Loading file: ' + model_file)
+        # print('Loading file: ' + model_file)
 
         self.model = kenlm.Model(model_file)
 

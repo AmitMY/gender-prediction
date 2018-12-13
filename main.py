@@ -51,16 +51,16 @@ scenarios = {
 }
 
 models = {
-    "Spacy": (spacy_runner, "nl_core_news_sm", {"clusters": False}),
-    "Spacy-c": (spacy_runner, "nl_core_news_sm", {"clusters": True}),
+#    "Spacy": (spacy_runner, "nl_core_news_sm", {"clusters": False}),
+#    "Spacy-c": (spacy_runner, "nl_core_news_sm", {"clusters": True}),
 }
 
 for ngram in range(3, 7):
     models["KENLM." + str(ngram)] = (kenlm_runner, "KENLM", {"ngram": ngram})
 
-for t in ['svm', 'log']:  # , 'rf', 'nb', 'knn']:
-    models["SKLearn-" + t] = (sklearn_runner, t, {"clusters": False})
-    models["SKLearn-" + t + "-c"] = (sklearn_runner, t, {"clusters": True})
+#for t in ['svm', 'log']:  # , 'rf', 'nb', 'knn']:
+#    models["SKLearn-" + t] = (sklearn_runner, t, {"clusters": False})
+#    models["SKLearn-" + t + "-c"] = (sklearn_runner, t, {"clusters": True})
 
 # # Add all of the pytorch models
 # for m in ["RNN", "CNN", "RCNN", "LSTM", "LSTMAttention", "SelfAttention"]:

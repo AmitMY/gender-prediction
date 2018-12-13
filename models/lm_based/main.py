@@ -134,7 +134,6 @@ class ModelRunner:
         '''
         test_sent_preprocessed = preprocess_sent(test_sent)
         results = compare(self.lm_models, [test_sent_preprocessed])
-
         return results[0][0]
 
     def eval_all(self, test_sents):
@@ -143,7 +142,12 @@ class ModelRunner:
             :param test: a test sentence 
             :returns: a result object
         '''
-        test_sents_preprocessed = [preprocess_sent(test_sent) for test_sent in test_sents]
+        
+        savetodir(self.tmp_dir, test_sents, 'test.dat')
+        test_file_pc = preprocess_text(os.path.join(self.tmp_dir, 'test.dat'))
+        
+        with open(test_file_pc, 'r') as inF:
+            test_sents_preprocessed = inF.readlines()
         
         results = compare(self.lm_models, test_sents_preprocessed)
         
