@@ -9,19 +9,19 @@ from models.ensemble.main_naive import ModelRunner as ensemble
 
 test_data = {
     "twitter": Data("Twitter", "test", ["twitter"]),
-    "youtube": Data("Youtube", "test", ["youtube"]),
-    "news": Data("News", "test", ["news"]),
+#    "youtube": Data("Youtube", "test", ["youtube"]),
+#    "news": Data("News", "test", ["news"]),
 }
 
 TEAM = "ABI"
 
 test_runs = {
     TEAM + "_IN_twitter_1": ("Twitter 90%|Twitter 10%", test_data["twitter"]),
-    TEAM + "_IN_youtube_1": ("YouTube 90%|YouTube 10%", test_data["youtube"]),
-    TEAM + "_IN_news_1": ("News 90%|News 10%", test_data["news"]),
-    TEAM + "_CROSS_twitter_1": ("YouTube, News|Twitter", test_data["twitter"]),
-    TEAM + "_CROSS_youtube_1": ("Twitter, News|YouTube", test_data["youtube"]),
-    TEAM + "_CROSS_news_1": ("Twitter, YouTube|News", test_data["news"]),
+#    TEAM + "_IN_youtube_1": ("YouTube 90%|YouTube 10%", test_data["youtube"]),
+#    TEAM + "_IN_news_1": ("News 90%|News 10%", test_data["news"]),
+#    TEAM + "_CROSS_twitter_1": ("YouTube, News|Twitter", test_data["twitter"]),
+#    TEAM + "_CROSS_youtube_1": ("Twitter, News|YouTube", test_data["youtube"]),
+#    TEAM + "_CROSS_news_1": ("Twitter, YouTube|News", test_data["news"]),
 }
 
 results_dir = "models/results/"
@@ -41,7 +41,7 @@ for test_run, (scenario_name, test_data) in test_runs.items():
         if all([os.path.isfile(os.path.join(results_dir_scenario, t, model_name)) for t in t_data.keys()]):
             print(test_run, "Skipping", model_name)
             print("\n")
-            continue
+            #continue
 
         print(test_run, "Loading", model_name)
 
@@ -52,7 +52,8 @@ for test_run, (scenario_name, test_data) in test_runs.items():
             print("No eval_one/eval_all method!")
         else:
             inst.load(os.path.join(checkpoints_dir_scenario, model_name))
-
+            print('appending inst')
+            print(inst)
             model_list.append(inst)
             
             for t, data in {"train": train_data, "dev": dev_data, "test": test_data}.items():
@@ -103,7 +104,6 @@ for test_run, (scenario_name, test_data) in test_runs.items():
         '''
         return 'M' if score > 0.5 else 'F'
         
-            
     ens = ensemble('Ensemble_Naive', model_list=model_list, test=test_data, opt=options)
     _, results = ens.evaluate()
     

@@ -29,7 +29,6 @@ class ModelRunner:
         self.ensemble_model = svm.NuSVC(gamma='scale')
 
         self.test_sents, self.test_labels, self.test_ids = test.export(lowercase=False)
-
         # load all models that we want to ensemble
         self.pretrained_models = model_list
 
@@ -59,9 +58,7 @@ class ModelRunner:
                 :param weights: a list of weights to add on the average
                 :returns: the prediction 0/1 or M/F
             '''
-            
             vector = [model.eval_one(sent) for model in self.pretrained_models]
-
             if weights is not None:
                 # convert to a -1,1 scale
                 vector = np.multiply(np.subtract(vector, 0.5), 2)
@@ -69,18 +66,16 @@ class ModelRunner:
                 # convert back to 0, 1 scale
                 vector = np.multiply(np.add(vector, 0.5), 0.5)
 
-            prediction = [0.0 if np.average(vector) < 0.5 else 1.0]
+            prediction = 0.0 if np.average(vector) < 0.5 else 1.0
             return prediction
         
         # Actual testing/evaluation
         accuracy = 0.0
-        if test is None:
-            test_sents = self.test_sents
-            test_labels = self.test_labels
-            test_ids = self.test_ids
-        else:
-            test_sents, test_labels, test_ids = test.export(
-                lowercase=self.lowercase)
+        test_sents = self.test_sents
+        test_labels = self.test_labels
+        test_ids = self.test_ids
+        if test is not None:
+            test_sents, test_labels, test_ids = test.export(lowercase=False)
 
         predicted_labels = [predict(test_sent) for test_sent in test_sents]
 
