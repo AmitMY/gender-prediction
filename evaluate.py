@@ -52,25 +52,31 @@ def male_female(score):
 
 
 def parse_results_file(results_f):
-    results = open(results_f).read().splitlines()
+    try:
+        results = open(results_f).read().splitlines()
+    except:
+        results = []
     return {int(id): g for (id, g) in [r.split() for r in results]}
 
 
 def gender_eval(results, data):
-    total_male = total_female = 0
+    total_male = total_female = total_missing = 0
     correct_male = correct_female = 0
     for text, gender, id in zip(*data.export()):
-        if results[id] == "M":
-            total_male += 1
-            if gender == 0:
-                correct_male += 1
-        elif results[id] == "F":
-            total_female += 1
-            if gender == 1:
-                correct_female += 1
+        if id in results:
+            if results[id] == "M":
+                total_male += 1
+                if gender == 0:
+                    correct_male += 1
+            elif results[id] == "F":
+                total_female += 1
+                if gender == 1:
+                    correct_female += 1
+        else:
+            total_missing += 1
 
     return {
-        "all": (correct_male + correct_female) / (total_male + total_female),
+        "all": (correct_male + correct_female) / (total_male + total_female + total_missing),
         "male": correct_male / (total_male + 0.0000001),
         "female": correct_female / (total_female + 0.0000001),
     }
@@ -167,55 +173,57 @@ for test_run, (scenario_name, test_data) in runs_shuffled:
 
         print("\n")
 
-    # gender_based_ensemble = []
-    # model_accuracies = {}
-    # # Compute dev accuracies
-    # for model_name, _ in models.items():
-    #     f_name = os.path.join(results_dir_scenario, "dev", model_name)
-    #     res = gender_eval(parse_results_file(f_name), dev_data)
-    #     gender_based_ensemble.append(("M", f_name, res["male"]))
-    #     gender_based_ensemble.append(("F", f_name, res["female"]))
-    #     model_accuracies[model_name] = res
-    #
-    # # Collect test scores for each ID
-    # scores_per_model = {}
-    # for model_name, _ in models.items():
-    #     f_name = os.path.join(results_dir_scenario, "test", model_name + '.prob')
-    #     scores_per_model[model_name] = parse_results_file(f_name)
-    #
-    # dev_scores_per_model = {}
-    # for model_name, _ in models.items():
-    #     f_name = os.path.join(results_dir_scenario, "dev", model_name + '.prob')
-    #     dev_scores_per_model[model_name] = parse_results_file(f_name)
-    #
-    # new_res = {}
-    # for g, f, _ in sorted(gender_based_ensemble, key=lambda k: k[2]):
-    #     results = parse_results_file(f)
-    #     for res_id, res_g in results.items():
-    #         if res_g == g:
-    #             new_res[res_id] = res_g
-    #
-    # print("Gender Ensemble", test_run, gender_eval(new_res, dev_data))
-    #
-    # weights = [accuracies['all'] for accuracies in model_accuracies.values()]
-    # ens = ensemble('Ensemble_Naive', scores_per_model)
-    # _, results = ens.evaluate(weights=weights, k=5)
-    #
-    # dev_sents, dev_labels, dev_ids = dev_data.export(lowercase=False)
-    #
-    # ens = ensemble('Ensemble_Naive', dev_scores_per_model)
-    # dev_accuracy, results = ens.evaluate(weights=weights, expected=dev_labels, k=5)
-    #
-    # # Now let's also compute the dev accuracy of the ensembel
-    # print(" ".join(['Ensembele Naive', test_run, 'dev', str(dev_accuracy)]))
-    #
-    # model_res_dir = os.path.join(results_dir_scenario, 'ensemble')
-    # makedir(model_res_dir)
-    #
-    # model_res_fname = os.path.join(model_res_dir, test_run)
-    # with open(model_res_fname, "w") as f:
-    #     f.write(
-    #         "\n".join([str(id) + " " + male_female(results[id]) for id in results]))
-    #
-    # with open(model_res_fname + ".prob", "w") as f:
-    #     f.write("\n".join([str(id) + " " + str(results[id]) for id in results]))
+    print("\n")
+    gender_based_ensemble = []
+    model_accuracies = {}
+    # Compute dev accuracies
+    for model_name, _ in models.items():
+        f_name = os.path.join(results_dir_scenario, "dev", model_name)
+        res = gender_eval(parse_results_file(f_name), dev_data)
+        gender_based_ensemble.append(("M", f_name, res["male"]))
+        gender_based_ensemble.append(("F", f_name, res["female"]))
+        model_accuracies[model_name] = res
+        print(model_name, test_run, model_accuracies[model_name])
+
+    # Collect test scores for each ID
+    scores_per_model = {}
+    for model_name, _ in models.items():
+        f_name = os.path.join(results_dir_scenario, "test", model_name + '.prob')
+        scores_per_model[model_name] = parse_results_file(f_name)
+
+    dev_scores_per_model = {}
+    for model_name, _ in models.items():
+        f_name = os.path.join(results_dir_scenario, "dev", model_name + '.prob')
+        dev_scores_per_model[model_name] = parse_results_file(f_name)
+
+    new_res = {}
+    for g, f, _ in sorted(gender_based_ensemble, key=lambda k: k[2]):
+        results = parse_results_file(f)
+        for res_id, res_g in results.items():
+            if res_g == g:
+                new_res[res_id] = res_g
+
+    print("Gender Ensemble", test_run, gender_eval(new_res, dev_data))
+
+    weights = [accuracies['all'] for accuracies in model_accuracies.values()]
+    ens = ensemble('Ensemble_Naive', scores_per_model)
+    _, results = ens.evaluate(weights=weights, k=5)
+
+    dev_sents, dev_labels, dev_ids = dev_data.export()
+
+    ens = ensemble('Ensemble_Naive', dev_scores_per_model)
+    dev_accuracy, results = ens.evaluate(weights=weights, expected=dev_labels, k=5)
+
+    # Now let's also compute the dev accuracy of the ensembel
+    print(" ".join(['Ensembele Naive', test_run, 'dev', str(dev_accuracy)]))
+
+    model_res_dir = os.path.join(results_dir_scenario, 'ensemble')
+    makedir(model_res_dir)
+
+    model_res_fname = os.path.join(model_res_dir, test_run)
+    with open(model_res_fname, "w") as f:
+        f.write(
+            "\n".join([str(id) + " " + male_female(results[id]) for id in results]))
+
+    with open(model_res_fname + ".prob", "w") as f:
+        f.write("\n".join([str(id) + " " + str(results[id]) for id in results]))

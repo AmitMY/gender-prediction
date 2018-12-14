@@ -71,7 +71,7 @@ class Data:
         clusterS = [self.clusterdata[sent] if sent in self.clusterdata else "0" for sent in text.split()]
         return " ".join(clusterS)
 
-    def export(self, prefix=False, lowercase=True, clusters=False):
+    def export(self, prefix=False, lowercase=False, clusters=False):
 
         def preprocess(t, w):
             if prefix:
