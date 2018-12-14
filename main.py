@@ -58,7 +58,7 @@ models = {
 # for ngram in range(3, 7):
 #     models["KENLM." + str(ngram)] = (kenlm_runner, "KENLM", {"ngram": ngram})
 
-for t in ['svm', 'log', 'nb', 'knn', 'rf',]:  #
+for t in ['svm', 'log', 'nb', 'knn']:  # 'rf',
     models["SKLearn-" + t] = (sklearn_runner, t, {"clusters": False})
     models["SKLearn-" + t + "-c"] = (sklearn_runner, t, {"clusters": True})
 
