@@ -1,5 +1,8 @@
+import numpy as np
+
 import torch
 import torch.nn.functional as F
+from torch.autograd import Variable
 
 from data.reader import Data
 from models.pytorch.load_data import load_dataset
@@ -20,9 +23,7 @@ embedding_length = 300
 class ModelRunner:
     def __init__(self, model, train=None, dev=None, opt={}):
 
-        if train is not None and dev is not None:
-            self.TEXT, self.vocab_size, self.train_iter, self.dev_iter, self.vectors = \
-                load_dataset(train, dev, opt)
+        self.TEXT, self.vocab_size, self.train_iter, self.dev_iter, self.vectors = load_dataset(train, dev, opt)
 
         self.vectors = self.vectors if "pretrained" in opt else None
         if model == "LSTM":
@@ -49,6 +50,17 @@ class ModelRunner:
 
     def save(self, path):
         torch.save(self.model.state_dict(), path)
+
+    def eval_one(self, text):
+        texts = [text]
+        texts = [[self.TEXT.vocab.stoi[x] for x in self.TEXT.preprocess(text)] for text in texts]
+        with torch.no_grad():
+            texts = torch.LongTensor(np.asarray(texts))
+            texts_tensor = Variable(texts).long().cuda()
+            self.model.eval()
+            self.model.cuda()
+            output = self.model(texts_tensor, 1)
+            return float(F.softmax(output, 1)[0][1])
 
     def train(self):
         def clip_gradient(clip_value):
@@ -156,5 +168,6 @@ if __name__ == "__main__":
     train, dev = Data("All", "train", ["news"], tokenize=False).split()
 
     runner = ModelRunner("LSTMAttention", train, dev, {"lowercase": True, "prefix": False})
-    for d in runner.train():
-        print(d)
+    print(runner.eval_one("Simple sentence"))
+    # for d in runner.train():
+    #     print(d)
