@@ -194,12 +194,12 @@ for test_run, (scenario_name, test_data) in test_runs.items():
 
     weights = [accuracies['all'] for accuracies in model_accuracies.values()]
     ens = ensemble('Ensemble_Naive', scores_per_model)
-    _, results = ens.evaluate(weights=weights)
+    _, results = ens.evaluate(weights=weights, k=5)
 
     dev_sents, dev_labels, dev_ids = dev_data.export(lowercase=False)
 
     ens = ensemble('Ensemble_Naive', dev_scores_per_model)
-    dev_accuracy, results = ens.evaluate(weights=weights, expected=dev_labels)
+    dev_accuracy, results = ens.evaluate(weights=weights, expected=dev_labels, k=5)
 
     # Now let's also compute the dev accuracy of the ensembel
     print(" ".join(['Ensembele Naive', test_run, 'dev', str(dev_accuracy)]))
