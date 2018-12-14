@@ -1,6 +1,8 @@
 import hashlib
 import os
 import numpy as np
+from random import shuffle
+
 from data.reader import Data
 from main import scenarios, checkpoints_dir, models
 from utils.file_system import makedir
@@ -25,13 +27,13 @@ test_runs = {
     TEAM + "_CROSS_news_1": ("Twitter, YouTube|News", test_data["news"]),
     TEAM + "_CROSS_kb_1": ("News 90%|News 10%", test_data["kb"]),  # Trained on news only
 
-    # TEAM + "_IN_twitter_2": ("Twitter 90%, Twisty|Twitter 10%", test_data["twitter"]),
-    # # TEAM + "_IN_youtube_2": ("YouTube 90%|YouTube 10%", test_data["youtube"]),
-    # # TEAM + "_IN_news_2": ("News 90%|News 10%", test_data["news"]),
-    # TEAM + "_CROSS_twitter_2": ("YouTube, News, CSI|Twitter", test_data["twitter"]),
-    # TEAM + "_CROSS_youtube_2": ("Twitter, News, External|YouTube", test_data["youtube"]),
-    # TEAM + "_CROSS_news_2": ("Twitter, YouTube, External|News", test_data["news"]),
-    # TEAM + "_CROSS_kb_2": ("All 90%|All 10%", test_data["kb"]),  # Trained on everything
+    TEAM + "_IN_twitter_2": ("Twitter 90%, Twisty|Twitter 10%", test_data["twitter"]),
+    # TEAM + "_IN_youtube_2": ("YouTube 90%|YouTube 10%", test_data["youtube"]),
+    # TEAM + "_IN_news_2": ("News 90%|News 10%", test_data["news"]),
+    TEAM + "_CROSS_twitter_2": ("YouTube, News, CSI|Twitter", test_data["twitter"]),
+    TEAM + "_CROSS_youtube_2": ("Twitter, News, External|YouTube", test_data["youtube"]),
+    TEAM + "_CROSS_news_2": ("Twitter, YouTube, External|News", test_data["news"]),
+    TEAM + "_CROSS_kb_2": ("All 90%|All 10%", test_data["kb"]),  # Trained on everything
 }
 
 results_dir = "models/results/"
@@ -90,7 +92,10 @@ for test_run, (scenario_name, test_data) in test_runs.items():
 
 print()
 
-for test_run, (scenario_name, test_data) in test_runs.items():
+runs_shuffled = list(test_runs.items())
+shuffle(runs_shuffled)
+
+for test_run, (scenario_name, test_data) in runs_shuffled:
     checkpoints_dir_scenario = os.path.join(checkpoints_dir, hash_scenario_map[scenario_name])
 
     results_dir_scenario = os.path.join(results_dir, hash_run_map[test_run])
@@ -162,55 +167,55 @@ for test_run, (scenario_name, test_data) in test_runs.items():
 
         print("\n")
 
-    gender_based_ensemble = []
-    model_accuracies = {}
-    # Compute dev accuracies
-    for model_name, _ in models.items():
-        f_name = os.path.join(results_dir_scenario, "dev", model_name)
-        res = gender_eval(parse_results_file(f_name), dev_data)
-        gender_based_ensemble.append(("M", f_name, res["male"]))
-        gender_based_ensemble.append(("F", f_name, res["female"]))
-        model_accuracies[model_name] = res
-
-    # Collect test scores for each ID
-    scores_per_model = {}
-    for model_name, _ in models.items():
-        f_name = os.path.join(results_dir_scenario, "test", model_name + '.prob')
-        scores_per_model[model_name] = parse_results_file(f_name)
-
-    dev_scores_per_model = {}
-    for model_name, _ in models.items():
-        f_name = os.path.join(results_dir_scenario, "dev", model_name + '.prob')
-        dev_scores_per_model[model_name] = parse_results_file(f_name)
-
-    new_res = {}
-    for g, f, _ in sorted(gender_based_ensemble, key=lambda k: k[2]):
-        results = parse_results_file(f)
-        for res_id, res_g in results.items():
-            if res_g == g:
-                new_res[res_id] = res_g
-
-    print("Gender Ensemble", test_run, gender_eval(new_res, dev_data))
-
-    weights = [accuracies['all'] for accuracies in model_accuracies.values()]
-    ens = ensemble('Ensemble_Naive', scores_per_model)
-    _, results = ens.evaluate(weights=weights, k=5)
-
-    dev_sents, dev_labels, dev_ids = dev_data.export(lowercase=False)
-
-    ens = ensemble('Ensemble_Naive', dev_scores_per_model)
-    dev_accuracy, results = ens.evaluate(weights=weights, expected=dev_labels, k=5)
-
-    # Now let's also compute the dev accuracy of the ensembel
-    print(" ".join(['Ensembele Naive', test_run, 'dev', str(dev_accuracy)]))
-
-    model_res_dir = os.path.join(results_dir_scenario, 'ensemble')
-    makedir(model_res_dir)
-
-    model_res_fname = os.path.join(model_res_dir, test_run)
-    with open(model_res_fname, "w") as f:
-        f.write(
-            "\n".join([str(id) + " " + male_female(results[id]) for id in results]))
-
-    with open(model_res_fname + ".prob", "w") as f:
-        f.write("\n".join([str(id) + " " + str(results[id]) for id in results]))
+    # gender_based_ensemble = []
+    # model_accuracies = {}
+    # # Compute dev accuracies
+    # for model_name, _ in models.items():
+    #     f_name = os.path.join(results_dir_scenario, "dev", model_name)
+    #     res = gender_eval(parse_results_file(f_name), dev_data)
+    #     gender_based_ensemble.append(("M", f_name, res["male"]))
+    #     gender_based_ensemble.append(("F", f_name, res["female"]))
+    #     model_accuracies[model_name] = res
+    #
+    # # Collect test scores for each ID
+    # scores_per_model = {}
+    # for model_name, _ in models.items():
+    #     f_name = os.path.join(results_dir_scenario, "test", model_name + '.prob')
+    #     scores_per_model[model_name] = parse_results_file(f_name)
+    #
+    # dev_scores_per_model = {}
+    # for model_name, _ in models.items():
+    #     f_name = os.path.join(results_dir_scenario, "dev", model_name + '.prob')
+    #     dev_scores_per_model[model_name] = parse_results_file(f_name)
+    #
+    # new_res = {}
+    # for g, f, _ in sorted(gender_based_ensemble, key=lambda k: k[2]):
+    #     results = parse_results_file(f)
+    #     for res_id, res_g in results.items():
+    #         if res_g == g:
+    #             new_res[res_id] = res_g
+    #
+    # print("Gender Ensemble", test_run, gender_eval(new_res, dev_data))
+    #
+    # weights = [accuracies['all'] for accuracies in model_accuracies.values()]
+    # ens = ensemble('Ensemble_Naive', scores_per_model)
+    # _, results = ens.evaluate(weights=weights, k=5)
+    #
+    # dev_sents, dev_labels, dev_ids = dev_data.export(lowercase=False)
+    #
+    # ens = ensemble('Ensemble_Naive', dev_scores_per_model)
+    # dev_accuracy, results = ens.evaluate(weights=weights, expected=dev_labels, k=5)
+    #
+    # # Now let's also compute the dev accuracy of the ensembel
+    # print(" ".join(['Ensembele Naive', test_run, 'dev', str(dev_accuracy)]))
+    #
+    # model_res_dir = os.path.join(results_dir_scenario, 'ensemble')
+    # makedir(model_res_dir)
+    #
+    # model_res_fname = os.path.join(model_res_dir, test_run)
+    # with open(model_res_fname, "w") as f:
+    #     f.write(
+    #         "\n".join([str(id) + " " + male_female(results[id]) for id in results]))
+    #
+    # with open(model_res_fname + ".prob", "w") as f:
+    #     f.write("\n".join([str(id) + " " + str(results[id]) for id in results]))
