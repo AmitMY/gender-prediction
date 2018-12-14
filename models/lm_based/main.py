@@ -181,7 +181,7 @@ if __name__ == '__main__':
         inst.load(args.model)
         results[args.model] = inst.test()
     else:
-        for ngram in [3, 4]:
+        for ngram in [3, 4, 5, 6]:
             inst = ModelRunner(model="LuMi", train=train, dev=dev, opt={'ngram': ngram})
             print("Created model", "training...")
             results[ngram] = inst.train()
