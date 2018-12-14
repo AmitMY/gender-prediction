@@ -7,6 +7,95 @@ sys.path.append("../")
 from data.reader import Data
 #from models.loader import Loader as ModelLoader
 
+class PredictionRunner:
+    ''' A main runner for the Ensemble based on already predicted labels
+    '''
+
+    def __init__(self, model, scores_per_model):
+        ''' Init method for the model runner
+
+            :param model: the name of the model
+            :param test_data: the test or dev data (a dictionary of dictionaries)
+            :param opt: a dictionary with all options
+        '''
+        self.modelname = model
+
+        self.scores_per_id = self.__scores(scores_per_model)
+
+    def __scores(self, scores):
+        ''' Reads the test files (per model) and extracts scores per id
+            
+            :params scores: scores organized per model and id
+            :returns: scores organized only per id
+        '''
+        
+        scores_per_id = {}
+        for model in scores:
+            for id in scores[model]:  
+                if id not in scores_per_id:
+                    scores_per_id[id] = [float(scores[model][id])]
+                else:
+                    scores_per_id[id].append(float(scores[model][id]))
+        return scores_per_id
+                
+    def evaluate(self, weights=None, expected=None):
+        ''' Method to test the ensemble model
+
+            :param weights: weights
+            :param expected: the expected output
+            :returns: accuracy, result with digits, result with labels
+        '''
+        
+        def male_female(score):
+            ''' Return the label based on the score
+                0 = M
+                1 = F
+
+                :param score: the score -a number int or float
+                :returns: label
+            '''
+            return 'M' if score < 0.5 else 'F'
+    
+    
+        def compute_accuracy(predicted, expected):
+            ''' Computes the accuracy of the prediction
+
+                :param predicted: Predicted values
+                :param expected: Expected values
+                :returns: accuracy score
+            '''
+            predicted_list = list(predicted.values())
+            eq = [1 if predicted_list[i] == expected[i]
+                  else 0 for i in range(len(predicted.values()))]
+
+            return np.mean(eq)
+            
+        def predict(vector, weights=None):
+            ''' Method to evaluate all models and get their prediction for a given sentence
+
+                :param vector: the vector represnting the sentence to test with
+                :param weights: a list of weights to add on the average
+                :returns: the prediction M/F
+            '''
+            vector = np.multiply(np.subtract(vector, 0.5), 2)
+            if weights is not None:
+                vector = np.multiply(vector, weights)  # add weights
+                
+            prediction = 0.0 if np.average(vector) < 0.0 else 1.0
+            return prediction
+
+        # Actual testing/evaluation
+        accuracy = 0.0
+        predicted_labels = {}
+        for id in self.scores_per_id:
+            predicted_labels[id] = predict(self.scores_per_id[id], weights)
+            
+        if expected is not None:
+            accuracy = compute_accuracy(predicted_labels, expected)
+
+        return accuracy, predicted_labels
+        
+
 
 class ModelRunner:
     ''' A main model runner for the Ensemble
@@ -28,10 +117,11 @@ class ModelRunner:
         # load all models that we want to ensemble
         self.pretrained_models = model_list
 
-    def evaluate(self, test_data=None):
+    def evaluate(self, test_data=None, weights=None):
         ''' Method to test the ensemble model
 
             :param test: the test data (an instance of Data)
+            :param weights: weights
             :returns: a result object
         '''
 
@@ -74,7 +164,7 @@ class ModelRunner:
             test_sents, test_labels, test_ids = test_data.export(
                 lowercase=False)
 
-        predicted_labels = [predict(test_sent) for test_sent in test_sents]
+        predicted_labels = [predict(test_sent, weights) for test_sent in test_sents]
 
         accuracy = compute_accuracy(predicted_labels, test_labels)
 

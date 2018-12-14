@@ -126,15 +126,15 @@ class ModelRunner:
 
         return [accuracy]
         
-    def eval_one(self, test_sent):
-        ''' Method to evaluate a single sentence with an LM-based model
+#    def eval_one(self, test_sent):
+#        ''' Method to evaluate a single sentence with an LM-based model
 
-            :param test: a test sentence 
-            :returns: a result object
-        '''
-        test_sent_preprocessed = preprocess_sent(test_sent)
-        results = compare(self.lm_models, [test_sent_preprocessed])
-        return results[0][0]
+#            :param test: a test sentence 
+#            :returns: a result object
+#        '''
+#        test_sent_preprocessed = preprocess_sent(test_sent)
+#        results = compare(self.lm_models, [test_sent_preprocessed])
+#        return results[0][0]
 
     def eval_all(self, test_sents):
         ''' Method to test an LM-based model
