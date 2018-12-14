@@ -21,7 +21,7 @@ sh $BASEPATH/preprocess.sh $INFILE $INFILE.lc-tok $MTPATH
 
 echo " ----- STEP 2 ----- "
 # Build Language Model using KENLM #
-$MTPATH/lmplz -o $ORDER --prune 0 1 -S 20% -T /tmp < $INFILE.lc-tok > $INFILE.lm
+$MTPATH/lmplz -o $ORDER --prune 0 1 --discount_fallback 3 -S 20% -T /tmp < $INFILE.lc-tok > $INFILE.lm
 
 echo " ----- STEP 3 ----- "
 # Create binary LM #
