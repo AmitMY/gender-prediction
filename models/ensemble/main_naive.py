@@ -38,7 +38,7 @@ class PredictionRunner:
                     scores_per_id[id].append(float(scores[model][id]))
         return scores_per_id
                 
-    def evaluate(self, weights=None, expected=None):
+    def evaluate(self, weights=None, expected=None, k=None):
         ''' Method to test the ensemble model
 
             :param weights: weights
@@ -70,25 +70,35 @@ class PredictionRunner:
 
             return np.mean(eq)
             
-        def predict(vector, weights=None):
+        def predict(vector, weights=None, top_k_weight_idx=None):
             ''' Method to evaluate all models and get their prediction for a given sentence
 
                 :param vector: the vector represnting the sentence to test with
                 :param weights: a list of weights to add on the average
+                :param top_k_weight_idx: a list of indexes of the top k values from the weights
                 :returns: the prediction M/F
             '''
+            if top_k_weight_idx is not None:
+                vector = [vector[i] for i in top_k_weight_idx]
+                
             vector = np.multiply(np.subtract(vector, 0.5), 2)
             if weights is not None:
+                if top_k_weight_idx is not None:
+                    weights = [weights[i] for i in top_k_weight_idx]
+                
                 vector = np.multiply(vector, weights)  # add weights
                 
             prediction = 0.0 if np.average(vector) < 0.0 else 1.0
             return prediction
 
         # Actual testing/evaluation
+        top_k_weight_idx = None
         accuracy = 0.0
         predicted_labels = {}
+        if k is not None and k < len(weights):
+            top_k_weight_idx = np.argsort(weights)[-k:]
         for id in self.scores_per_id:
-            predicted_labels[id] = predict(self.scores_per_id[id], weights)
+            predicted_labels[id] = predict(self.scores_per_id[id], weights, top_k_weight_idx)
             
         if expected is not None:
             accuracy = compute_accuracy(predicted_labels, expected)

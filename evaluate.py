@@ -17,11 +17,11 @@ TEAM = "ABI"
 
 test_runs = {
     TEAM + "_IN_twitter_1": ("Twitter 90%|Twitter 10%", test_data["twitter"]),
-    TEAM + "_IN_youtube_1": ("YouTube 90%|YouTube 10%", test_data["youtube"]),
-    TEAM + "_IN_news_1": ("News 90%|News 10%", test_data["news"]),
-    TEAM + "_CROSS_twitter_1": ("YouTube, News|Twitter", test_data["twitter"]),
-    TEAM + "_CROSS_youtube_1": ("Twitter, News|YouTube", test_data["youtube"]),
-    TEAM + "_CROSS_news_1": ("Twitter, YouTube|News", test_data["news"]),
+#    TEAM + "_IN_youtube_1": ("YouTube 90%|YouTube 10%", test_data["youtube"]),
+#    TEAM + "_IN_news_1": ("News 90%|News 10%", test_data["news"]),
+#    TEAM + "_CROSS_twitter_1": ("YouTube, News|Twitter", test_data["twitter"]),
+#    TEAM + "_CROSS_youtube_1": ("Twitter, News|YouTube", test_data["youtube"]),
+#    TEAM + "_CROSS_news_1": ("Twitter, YouTube|News", test_data["news"]),
 }
 
 results_dir = "models/results/"
@@ -164,12 +164,12 @@ for test_run, (scenario_name, test_data) in test_runs.items():
     print("Ensembling...")
     weights = [accuracies['all'] for accuracies in model_accuracies.values()]
     ens = ensemble('Ensemble_Naive', scores_per_model)
-    _, results = ens.evaluate(weights=weights)
+    _, results = ens.evaluate(weights=weights, k=5)
 
     dev_sents, dev_labels, dev_ids = dev_data.export(lowercase=False)
 
     ens = ensemble('Ensemble_Naive', dev_scores_per_model)
-    dev_accuracy, results = ens.evaluate(weights=weights, expected=dev_labels)
+    dev_accuracy, results = ens.evaluate(weights=weights, expected=dev_labels, k=5)
 
     # Now let's also compute the dev accuracy of the ensembel
     print(" ".join(['Ensembele Naive', test_run, 'dev', str(dev_accuracy)]))
