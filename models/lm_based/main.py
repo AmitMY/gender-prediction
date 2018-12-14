@@ -171,7 +171,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    train, dev = Data("Twitter", "train", ['twitter'], tokenize=True).split()
+    train = Data("News, Youtube, CSI", "train", ["news", "youtube", "csi"], tokenize=False)
+    dev = Data("Twitter", "train", ["twitter"], tokenize=False)
     # dev = Data("N", "train", ['twitter'], tokenize=True)
     results = {}
 
