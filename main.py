@@ -12,42 +12,42 @@ from utils.file_system import makedir, rmfile
 import hashlib
 
 data = {
-    # "original": Data("All", "train", ["twitter", "youtube", "news"]),
+    "all": Data("All", "train"),
 
     "twitter": Data("Twitter", "train", ["twitter"]),
     "youtube": Data("Youtube", "train", ["youtube"]),
     "news": Data("News", "train", ["news"]),
 
-    # "twitter+twisty": Data("Twitter, Twisty", "train", ["twitter", "twisty1"]),
+    "twitter+twisty": Data("Twitter, Twisty", "train", ["twitter", "twisty1"]),
 
     "twitter+news": Data("Twitter, News", "train", ["twitter", "news"]),
     "twitter+youtube": Data("Twitter, Youtube", "train", ["twitter", "youtube"]),
     "news+youtube": Data("News, Youtube", "train", ["news", "youtube"]),
 
-    # "twitter+news+external": Data("Twitter, News, External", "train", ["twitter", "news", "csi", "twisty1"]),
-    # "twitter+youtube+external": Data("Twitter, Youtube, External", "train", ["twitter", "youtube", "csi", "twisty1"]),
-    # "news+youtube+csi": Data("News, Youtube, CSI", "train", ["news", "youtube", "csi"]),
+    "twitter+news+external": Data("Twitter, News, External", "train", ["twitter", "news", "csi", "twisty1"]),
+    "twitter+youtube+external": Data("Twitter, Youtube, External", "train", ["twitter", "youtube", "csi", "twisty1"]),
+    "news+youtube+csi": Data("News, Youtube, CSI", "train", ["news", "youtube", "csi"]),
 }
 
 scenarios = {
-    # # "Original 90%|Original 10%": data["original"].split(),
+    "All 90%|All 10%": data["all"].split(),
     # In domain
     "Twitter 90%|Twitter 10%": data["twitter"].split(),
     "YouTube 90%|YouTube 10%": data["youtube"].split(),
     "News 90%|News 10%": data["news"].split(),
-    #
-    # # In domain + external data
-    # "Twitter 90%, Twisty|Twitter 10%": data["twitter+twisty"].split(),
-    #
+
+    # In domain + external data
+    "Twitter 90%, Twisty|Twitter 10%": data["twitter+twisty"].split(),
+
     # Out of domain
     "Twitter, News|YouTube": (data["twitter+news"], data["youtube"]),
     "Twitter, YouTube|News": (data["twitter+youtube"], data["news"]),
     "YouTube, News|Twitter": (data["news+youtube"], data["twitter"]),
-    #
-    # # Out of domain + external data
-    # "Twitter, News, External|YouTube": (data["twitter+news+external"], data["youtube"]),
-    # "Twitter, YouTube, External|News": (data["twitter+youtube+external"], data["news"]),
-    # "YouTube, News, CSI|Twitter": (data["news+youtube+csi"], data["twitter"]),
+
+    # Out of domain + external data
+    "Twitter, News, External|YouTube": (data["twitter+news+external"], data["youtube"]),
+    "Twitter, YouTube, External|News": (data["twitter+youtube+external"], data["news"]),
+    "YouTube, News, CSI|Twitter": (data["news+youtube+csi"], data["twitter"]),
 }
 
 models = {
@@ -55,15 +55,15 @@ models = {
     "Spacy-c": (spacy_runner, "nl_core_news_sm", {"clusters": True}),
 }
 
-for ngram in range(3, 7):
-    models["KENLM." + str(ngram)] = (kenlm_runner, "KENLM", {"ngram": ngram})
+# for ngram in range(3, 7):
+#     models["KENLM." + str(ngram)] = (kenlm_runner, "KENLM", {"ngram": ngram})
 
-for t in ['svm', 'log']:  # , 'rf', 'nb', 'knn']:
+for t in ['svm', 'log', 'nb', 'knn', 'rf',]:  #
     models["SKLearn-" + t] = (sklearn_runner, t, {"clusters": False})
     models["SKLearn-" + t + "-c"] = (sklearn_runner, t, {"clusters": True})
 
 # Add all of the pytorch models
-for m in ["RNN", "RCNN", "LSTM", "LSTMAttention", "SelfAttention"]: # "CNN",
+for m in ["RNN", "RCNN", "LSTM", "LSTMAttention", "SelfAttention"]:  # "CNN",
     models[m + ""] = (pytorch_runner, m, {})
     models[m + "-c"] = (pytorch_runner, m, {"clusters": True})
     models[m + "+"] = (pytorch_runner, m, {"pretrained": "fasttext"})
@@ -92,7 +92,6 @@ if __name__ == "__main__":
     print(scenarios_shuffled[0])
 
     for name, (train, dev) in scenarios_shuffled:
-
         hashed = hashlib.md5(name.encode('utf-8')).hexdigest()
         checkpoints_dir_scenario = checkpoints_dir + hashed + "/"
         makedir(checkpoints_dir_scenario)

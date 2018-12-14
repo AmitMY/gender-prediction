@@ -11,6 +11,7 @@ test_data = {
     "twitter": Data("Twitter", "test", ["twitter"]),
     "youtube": Data("Youtube", "test", ["youtube"]),
     "news": Data("News", "test", ["news"]),
+    "kb": Data("KB", "test", ["kb"]),
 }
 
 TEAM = "ABI"
@@ -22,6 +23,15 @@ test_runs = {
     TEAM + "_CROSS_twitter_1": ("YouTube, News|Twitter", test_data["twitter"]),
     TEAM + "_CROSS_youtube_1": ("Twitter, News|YouTube", test_data["youtube"]),
     TEAM + "_CROSS_news_1": ("Twitter, YouTube|News", test_data["news"]),
+    TEAM + "_CROSS_kb_1": ("News 90%|News 10%", test_data["kb"]),  # Trained on news only
+
+    # TEAM + "_IN_twitter_2": ("Twitter 90%, Twisty|Twitter 10%", test_data["twitter"]),
+    # # TEAM + "_IN_youtube_2": ("YouTube 90%|YouTube 10%", test_data["youtube"]),
+    # # TEAM + "_IN_news_2": ("News 90%|News 10%", test_data["news"]),
+    # TEAM + "_CROSS_twitter_2": ("YouTube, News, CSI|Twitter", test_data["twitter"]),
+    # TEAM + "_CROSS_youtube_2": ("Twitter, News, External|YouTube", test_data["youtube"]),
+    # TEAM + "_CROSS_news_2": ("Twitter, YouTube, External|News", test_data["news"]),
+    # TEAM + "_CROSS_kb_2": ("All 90%|All 10%", test_data["kb"]),  # Trained on everything
 }
 
 results_dir = "models/results/"
@@ -64,19 +74,41 @@ def gender_eval(results, data):
     }
 
 
+print()
+
+hash_scenario_map = {}
 for test_run, (scenario_name, test_data) in test_runs.items():
-    hashed = hashlib.md5(scenario_name.encode('utf-8')).hexdigest()
-    checkpoints_dir_scenario = os.path.join(checkpoints_dir, hashed)
-    results_dir_scenario = os.path.join(results_dir, hashed)
+    hash_scenario_map[scenario_name] = hashlib.md5(scenario_name.encode('utf-8')).hexdigest()
+    print(scenario_name, "=", hash_scenario_map[scenario_name])
+
+print()
+
+hash_run_map = {}
+for test_run, (scenario_name, test_data) in test_runs.items():
+    hash_run_map[test_run] = hashlib.md5(test_run.encode('utf-8')).hexdigest()
+    print(test_run, "=", hash_run_map[test_run])
+
+print()
+
+for test_run, (scenario_name, test_data) in test_runs.items():
+    checkpoints_dir_scenario = os.path.join(checkpoints_dir, hash_scenario_map[scenario_name])
+
+    results_dir_scenario = os.path.join(results_dir, hash_run_map[test_run])
     makedir(results_dir_scenario)
 
     model_list = []  # A list to contain all trained models (or loaded models)
 
     train_data, dev_data = scenarios[scenario_name]
     for model_name, (runner, model, options) in models.items():
-        t_data = {"train": train_data, "dev": dev_data, "test": test_data}
+        t_data = {"dev": dev_data, "test": test_data}  # "train": train_data,
         # First check if everything is evaluated
         if all([os.path.isfile(os.path.join(results_dir_scenario, t, model_name)) for t in t_data.keys()]):
+            continue
+
+        # Check if we have a saved model
+        saved_model_path = os.path.join(checkpoints_dir_scenario, model_name)
+        if not os.path.exists(saved_model_path) and not os.path.exists(saved_model_path + ".zip"):
+            print("Skipping, NO MODEL CHECKPOINT EXISTS")
             continue
 
         print(test_run, "Loading", model_name)
@@ -87,10 +119,10 @@ for test_run, (scenario_name, test_data) in test_runs.items():
         if not callable(getattr(inst, "eval_one", None)) and not eval_all:
             print("No eval_one/eval_all method!")
         else:
-            inst.load(os.path.join(checkpoints_dir_scenario, model_name))
+            inst.load(saved_model_path)
             model_list.append(inst)
 
-            for t, data in {"train": train_data, "dev": dev_data, "test": test_data}.items():
+            for t, data in t_data.items():
                 results_dir_scenario_corpus = os.path.join(
                     results_dir_scenario, t)
                 makedir(results_dir_scenario_corpus)
@@ -130,7 +162,6 @@ for test_run, (scenario_name, test_data) in test_runs.items():
 
         print("\n")
 
-    print("Evaluating...")
     gender_based_ensemble = []
     model_accuracies = {}
     # Compute dev accuracies
@@ -161,7 +192,6 @@ for test_run, (scenario_name, test_data) in test_runs.items():
 
     print("Gender Ensemble", test_run, gender_eval(new_res, dev_data))
 
-    print("Ensembling...")
     weights = [accuracies['all'] for accuracies in model_accuracies.values()]
     ens = ensemble('Ensemble_Naive', scores_per_model)
     _, results = ens.evaluate(weights=weights)
