@@ -1,11 +1,11 @@
 import hashlib
 import os
-
+import numpy as np
 from data.reader import Data
 from main import scenarios, checkpoints_dir, models
 from utils.file_system import makedir
 
-from models.ensemble.main_naive import ModelRunner as ensemble
+from models.ensemble.main_naive import PredictionRunner as ensemble
 
 test_data = {
     "twitter": Data("Twitter", "test", ["twitter"]),
@@ -42,7 +42,6 @@ def male_female(score):
 def parse_results_file(results_f):
     results = open(results_f).read().splitlines()
     return {int(id): g for (id, g) in [r.split() for r in results]}
-
 
 def gender_eval(results, data):
     total_male = total_female = 0
@@ -108,15 +107,15 @@ for test_run, (scenario_name, test_data) in test_runs.items():
                         texts, labels, ids = list(zip(*export))
                         all_scores = inst.eval_all(texts)
                         for id, label, score in zip(ids, labels, all_scores):
-                            out.append(id + " " + male_female(score))
-                            out_prob.append(id + " " + str(score))
+                            out.append(str(id) + " " + male_female(score))
+                            out_prob.append(str(id) + " " + str(score))
                             if label is not None and round(score) == label:
                                 correct += 1
                     else:
                         for text, label, id in export:
                             score = inst.eval_one(text)
-                            out.append(id + " " + male_female(score))
-                            out_prob.append(id + " " + str(score))
+                            out.append(str(id) + " " + male_female(score))
+                            out_prob.append(str(id) + " " + str(score))
                             if label is not None and round(score) == label:
                                 correct += 1
 
@@ -134,13 +133,26 @@ for test_run, (scenario_name, test_data) in test_runs.items():
 
     print("Evaluating...")
     gender_based_ensemble = []
+    model_accuracies = {}
+    # Compute dev accuracies
     for model_name, _ in models.items():
         f_name = os.path.join(results_dir_scenario, "dev", model_name)
         res = gender_eval(parse_results_file(f_name), dev_data)
         gender_based_ensemble.append(("M", f_name, res["male"]))
         gender_based_ensemble.append(("F", f_name, res["female"]))
-        print(model_name, res)
+        model_accuracies[model_name] = res
+        
+    # Collect test scores for each ID 
+    scores_per_model={}
+    for model_name, _ in models.items():
+        f_name = os.path.join(results_dir_scenario, "test", model_name + '.prob')
+        scores_per_model[model_name]=parse_results_file(f_name)
 
+    dev_scores_per_model={}
+    for model_name, _ in models.items():
+        f_name = os.path.join(results_dir_scenario, "dev", model_name + '.prob')
+        dev_scores_per_model[model_name]=parse_results_file(f_name)
+        
     new_res = {}
     for g, f, _ in sorted(gender_based_ensemble, key=lambda k: k[2]):
         results = parse_results_file(f)
@@ -151,13 +163,18 @@ for test_run, (scenario_name, test_data) in test_runs.items():
     print("Gender Ensemble", test_run, gender_eval(new_res, dev_data))
     
     print("Ensembling...")
+    weights = [accuracies['all'] for accuracies in model_accuracies.values()]
+    ens = ensemble('Ensemble_Naive', scores_per_model)
+    _, results = ens.evaluate(weights=weights)
 
-    ens = ensemble('Ensemble_Naive', model_list=model_list, test_data=test_data)
-    _, results = ens.evaluate()
+    dev_sents, dev_labels, dev_ids = dev_data.export(lowercase=False)
+    
+    ens = ensemble('Ensemble_Naive', dev_scores_per_model)
+    dev_accuracy, results = ens.evaluate(weights = weights, expected = dev_labels)
+
 
     # Now let's also compute the dev accuracy of the ensembel
-    dev_accuracy, _ = ens.evaluate(dev_data)
-    print(" ".join(['Ensembele Naive', scenario_name, 'dev', str(dev_accuracy[0])]))
+    print(" ".join(['Ensembele Naive', scenario_name, 'dev', str(dev_accuracy)]))
 
     model_res_dir = os.path.join(results_dir_scenario, 'ensemble')
     makedir(model_res_dir)
