@@ -28,11 +28,13 @@ class Data:
 
         if isinstance(source, str):
             files = listdir(os.path.join(script_dir, source))
-            self.categories = {f.split("_")[1].split(".")[0].lower(): self.parse_file(f, tokenize) for f in files}
+            files_names = {f.split("_")[1].split(".")[0].lower(): f for f in files}
+            self.categories = {name: self.parse_file(f, tokenize)
+                               for name, f in files_names.items() if not specific or name in specific}
         else:
             self.categories = source
 
-        self.categories = {w: c for w, c in self.categories.items() if not specific or w in specific}
+        # self.categories = {w: c for w, c in self.categories.items() if not specific or w in specific}
 
         print(name, "found", {w: len(c) for w, c in self.categories.items()})
 

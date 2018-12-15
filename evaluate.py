@@ -82,6 +82,18 @@ def gender_eval(results, data):
     }
 
 
+def amit_ensemble(accuracy, predictions):
+    new_predictions = {}
+    for model, acc in accuracy.items():
+        acc = acc["all"] - 0.5
+        for id, g in predictions[model].items():
+            if id not in new_predictions:
+                new_predictions[id] = 0
+            new_predictions[id] += acc * (-1 if g == "M" else 1)
+
+    return {id: "M" if g < 0 else "F" for id, g in new_predictions.items()}
+
+
 print()
 
 hash_scenario_map = {}
@@ -176,37 +188,48 @@ for test_run, (scenario_name, test_data) in runs_shuffled:
     print("\n")
     gender_based_ensemble = []
     model_accuracies = {}
+    test_scores_per_model = {}
+    dev_scores_per_model = {}
     # Compute dev accuracies
     for model_name, _ in models.items():
+        f_name = os.path.join(results_dir_scenario, "test", model_name)
+        test_scores_per_model[model_name] = parse_results_file(f_name)
+
         f_name = os.path.join(results_dir_scenario, "dev", model_name)
-        res = gender_eval(parse_results_file(f_name), dev_data)
+        dev_scores_per_model[model_name] = parse_results_file(f_name)
+
+        res = gender_eval(dev_scores_per_model[model_name], dev_data)
         gender_based_ensemble.append(("M", f_name, res["male"]))
         gender_based_ensemble.append(("F", f_name, res["female"]))
         model_accuracies[model_name] = res
         print(model_name, test_run, model_accuracies[model_name])
 
-    # Collect test scores for each ID
-    scores_per_model = {}
-    for model_name, _ in models.items():
-        f_name = os.path.join(results_dir_scenario, "test", model_name + '.prob')
-        scores_per_model[model_name] = parse_results_file(f_name)
+    amit_ensemble_result = amit_ensemble(model_accuracies, dev_scores_per_model)
+    print("Amit Ensemble Dev", gender_eval(amit_ensemble_result, dev_data))
 
-    dev_scores_per_model = {}
-    for model_name, _ in models.items():
-        f_name = os.path.join(results_dir_scenario, "dev", model_name + '.prob')
-        dev_scores_per_model[model_name] = parse_results_file(f_name)
+    model_res_dir = os.path.join(results_dir_scenario, 'ensemble')
+    makedir(model_res_dir)
 
-    new_res = {}
-    for g, f, _ in sorted(gender_based_ensemble, key=lambda k: k[2]):
-        results = parse_results_file(f)
-        for res_id, res_g in results.items():
-            if res_g == g:
-                new_res[res_id] = res_g
+    model_res_fname = os.path.join(model_res_dir, test_run + "_dev_Amit")
+    with open(model_res_fname, "w") as f:
+        f.write("\n".join([str(id) + " " + g for id, g in amit_ensemble_result.items()]))
 
-    print("Gender Ensemble", test_run, gender_eval(new_res, dev_data))
+    amit_ensemble_result = amit_ensemble(model_accuracies, test_scores_per_model)
+    model_res_fname = os.path.join(model_res_dir, test_run + "_Amit")
+    with open(model_res_fname, "w") as f:
+        f.write("\n".join([str(id) + " " + g for id, g in amit_ensemble_result.items()]))
+
+    # new_res = {}
+    # for g, f, _ in sorted(gender_based_ensemble, key=lambda k: k[2]):
+    #     results = parse_results_file(f)
+    #     for res_id, res_g in results.items():
+    #         if res_g == g:
+    #             new_res[res_id] = res_g
+    #
+    # print("Gender Ensemble", test_run, gender_eval(new_res, dev_data))
 
     weights = [accuracies['all'] for accuracies in model_accuracies.values()]
-    ens = ensemble('Ensemble_Naive', scores_per_model)
+    ens = ensemble('Ensemble_Naive', test_scores_per_model)
     _, results = ens.evaluate(weights=weights, k=5)
 
     dev_sents, dev_labels, dev_ids = dev_data.export()
@@ -216,9 +239,6 @@ for test_run, (scenario_name, test_data) in runs_shuffled:
 
     # Now let's also compute the dev accuracy of the ensembel
     print(" ".join(['Ensembele Naive', test_run, 'dev', str(dev_accuracy)]))
-
-    model_res_dir = os.path.join(results_dir_scenario, 'ensemble')
-    makedir(model_res_dir)
 
     model_res_fname = os.path.join(model_res_dir, test_run)
     with open(model_res_fname, "w") as f:

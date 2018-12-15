@@ -59,8 +59,8 @@ class ModelRunner:
             texts_tensor = Variable(texts).long().cuda()
             self.model.eval()
             self.model.cuda()
-            output = self.model(texts_tensor, 1)
-            return float(F.softmax(output, 1)[0][1])
+            output = F.softmax(self.model(texts_tensor, 1), 1)
+            return float(output[0][1])
 
     def train(self):
         def clip_gradient(clip_value):

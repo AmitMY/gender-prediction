@@ -1,0 +1,17 @@
+Submission              id                                      model           data
+
+ABI_IN_twitter_1        3bd31b41f7d9b4a3d71247831433638b        ensemble        no external data
+ABI_IN_youtube_1        a41b5f19b805e471a7c5a3dd97d1cbff        ensemble        no external data
+ABI_IN_news_1		    9e30152d6b529df270e8df41032c2a99        ensemble        no external data
+ABI_CROSS_twitter_1		5daef09c797e0fc5ead5a1e5007fdad9        ensemble        no external data
+ABI_CROSS_youtube_1		c8c30350457e4dba51cfe7626ed2c570        ensemble        no external data
+ABI_CROSS_news_1		973275a81f28f98da13584d915bbce9e        ensemble        no external data
+ABI_CROSS_kb_1		    f4893f82255a30aadd22854c3a445400        ensemble        no external data (same model as ABI_CROSS_news_1)
+
+ABI_IN_twitter_2		5462c4405394a4ebe2b2179dda7d8e84        ensemble        with external data
+ABI_IN_youtube_2        a41b5f19b805e471a7c5a3dd97d1cbff        Spacy.1         no external data
+ABI_IN_news_2		    9e30152d6b529df270e8df41032c2a99        Spacy.3         no external data
+ABI_CROSS_twitter_2		5eac46e332b3b1a8c7eb216636e05c62        ensemble        with external data
+ABI_CROSS_youtube_2		38af82027a579867a1343ee9c67aad9c        ensemble        with external data
+ABI_CROSS_news_2		7bc1fe65938b8a8553bd474a3cfd2818        ensemble        with external data
+ABI_CROSS_kb_2		    5dedac9c6e9fdfbb0b21214e4f394f2c        ensemble        with external data (model trained on all categories)

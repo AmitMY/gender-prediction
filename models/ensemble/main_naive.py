@@ -3,9 +3,12 @@ import argparse
 import numpy as np
 
 from sklearn import svm
+
 sys.path.append("../")
 from data.reader import Data
-#from models.loader import Loader as ModelLoader
+
+
+# from models.loader import Loader as ModelLoader
 
 class PredictionRunner:
     ''' A main runner for the Ensemble based on already predicted labels
@@ -28,16 +31,17 @@ class PredictionRunner:
             :params scores: scores organized per model and id
             :returns: scores organized only per id
         '''
-        
+
         scores_per_id = {}
         for model in scores:
-            for id in scores[model]:  
+            for id in scores[model]:
+                s = 0 if scores[model][id] == "M" else 1
                 if id not in scores_per_id:
-                    scores_per_id[id] = [float(scores[model][id])]
+                    scores_per_id[id] = [s]
                 else:
-                    scores_per_id[id].append(float(scores[model][id]))
+                    scores_per_id[id].append(s)
         return scores_per_id
-                
+
     def evaluate(self, weights=None, expected=None, k=None):
         ''' Method to test the ensemble model
 
@@ -45,7 +49,7 @@ class PredictionRunner:
             :param expected: the expected output
             :returns: accuracy, result with digits, result with labels
         '''
-        
+
         def male_female(score):
             ''' Return the label based on the score
                 0 = M
@@ -55,8 +59,7 @@ class PredictionRunner:
                 :returns: label
             '''
             return 'M' if score < 0.5 else 'F'
-    
-    
+
         def compute_accuracy(predicted, expected):
             ''' Computes the accuracy of the prediction
 
@@ -69,7 +72,7 @@ class PredictionRunner:
                   else 0 for i in range(len(predicted.values()))]
 
             return np.mean(eq)
-            
+
         def predict(vector, weights=None, top_k_weight_idx=None):
             ''' Method to evaluate all models and get their prediction for a given sentence
 
@@ -80,14 +83,14 @@ class PredictionRunner:
             '''
             if top_k_weight_idx is not None:
                 vector = [vector[i] for i in top_k_weight_idx]
-                
+
             vector = np.multiply(np.subtract(vector, 0.5), 2)
             if weights is not None:
                 if top_k_weight_idx is not None:
                     weights = [weights[i] for i in top_k_weight_idx]
-                
+
                 vector = np.multiply(vector, weights)  # add weights
-                
+
             prediction = 0.0 if np.average(vector) < 0.0 else 1.0
             return prediction
 
@@ -99,12 +102,11 @@ class PredictionRunner:
             top_k_weight_idx = np.argsort(weights)[-k:]
         for id in self.scores_per_id:
             predicted_labels[id] = predict(self.scores_per_id[id], weights, top_k_weight_idx)
-            
+
         if expected is not None:
             accuracy = compute_accuracy(predicted_labels, expected)
 
         return accuracy, predicted_labels
-        
 
 
 class ModelRunner:
@@ -161,7 +163,7 @@ class ModelRunner:
                 vector = np.multiply(np.subtract(vector, 0.5), 2)
                 vector = np.multiply(vector, weights)  # add weights
                 threshold = 0.0
-                
+
             prediction = 0.0 if np.average(vector) < threshold else 1.0
             return prediction
 
