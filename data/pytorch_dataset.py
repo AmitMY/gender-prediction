@@ -16,7 +16,7 @@ class GxG(data.Dataset):
 
         super(GxG, self).__init__(examples, fields, **kwargs)
 
-    def iters(self, batch_size=32, device=0):
+    def iters(self, batch_size=32, device=None):
         """Create iterator objects for splits of the SST dataset.
         Arguments:
             batch_size: Batch_size
@@ -32,9 +32,7 @@ class GxG(data.Dataset):
         TEXT = data.Field()
         LABEL = data.Field(sequential=False)
 
-        train = self
+        TEXT.build_vocab(self)
+        LABEL.build_vocab(self)
 
-        TEXT.build_vocab(train)
-        LABEL.build_vocab(train)
-
-        return data.BucketIterator(dataset=train, batch_size=32, device=None, sort_key=GxG.sort_key)
+        return data.BucketIterator(dataset=self, batch_size=batch_size, device=device, sort_key=GxG.sort_key)
